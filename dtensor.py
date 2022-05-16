@@ -14,7 +14,7 @@ if gpus:
   logical_gpus = tf.config.list_logical_devices('GPU')
   print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
 
-DEVICES = [f'GPU:{i}' for i in range(6)]
+DEVICES = [f'GPU:{i}' for i in range(8)]
 
 train_data = tfds.load('imdb_reviews', split='train', shuffle_files=True, batch_size=64)
 
