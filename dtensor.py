@@ -221,5 +221,5 @@ for epoch in range(num_epochs):
 
     pbar.update(step, values=metrics.items(), finalize=False)
     step += 1
-  manager.save()
+  #manager.save()
   pbar.update(step, values=metrics.items(), finalize=True)
