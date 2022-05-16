@@ -209,7 +209,7 @@ def start_checkpoint_manager(mesh, model):
   return manager
 
 
-num_epochs = 2
+num_epochs = 100
 manager = start_checkpoint_manager(mesh, model)
 
 for epoch in range(num_epochs):
