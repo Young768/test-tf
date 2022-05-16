@@ -157,6 +157,9 @@ def repack_local_tensor(x, layout):
 
 mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
 
+CPU_DEVICES = [f'CPU:{i}' for i in range(8)]
+cpu_mesh = dtensor.create_mesh([("batch", 8)], devices=CPU_DEVICES)
+
 model = MLP([dtensor.Layout([dtensor.UNSHARDED, dtensor.UNSHARDED], mesh),
              dtensor.Layout([dtensor.UNSHARDED, dtensor.UNSHARDED], mesh),])
 
@@ -207,7 +210,7 @@ def start_checkpoint_manager(mesh, model):
 
 
 num_epochs = 2
-manager = start_checkpoint_manager(mesh, model)
+manager = start_checkpoint_manager(cpu_mesh, model)
 
 for epoch in range(num_epochs):
   step = 0
@@ -221,5 +224,5 @@ for epoch in range(num_epochs):
 
     pbar.update(step, values=metrics.items(), finalize=False)
     step += 1
-  #manager.save()
+  manager.save()
   pbar.update(step, values=metrics.items(), finalize=True)
