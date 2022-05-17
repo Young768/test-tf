@@ -12,27 +12,29 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--cpu", help="Using CPU")
 args = parser.parse_args()
 
-
-gpus = tf.config.list_physical_devices('GPU')
-if gpus:
-  for gpu in gpus:
-    tf.config.experimental.set_memory_growth(gpu, True)
-  logical_gpus = tf.config.list_logical_devices('GPU')
-  print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
-
-DEVICES = [f'GPU:{i}' for i in range(8)]
+DEVICES = []
 
 if args.cpu:
-    print("Using CPU right now.")
-    def configure_virtual_cpus(ncpu):
-      phy_devices = tf.config.list_physical_devices('CPU')
-      tf.config.set_logical_device_configuration(phy_devices[0], [
+  print("Using CPU right now.")
+  def configure_virtual_cpus(ncpu):
+    phy_devices = tf.config.list_physical_devices('CPU')
+    tf.config.set_logical_device_configuration(phy_devices[0], [
         tf.config.LogicalDeviceConfiguration(),
       ] * ncpu)
-    configure_virtual_cpus(8)
-    DEVICES = [f'CPU:{i}' for i in range(8)]
+  configure_virtual_cpus(8)
+  DEVICES = [f'CPU:{i}' for i in range(8)]
 
-    tf.config.list_logical_devices('CPU')
+  tf.config.list_logical_devices('CPU')
+else:
+  gpus = tf.config.list_physical_devices('GPU')
+  if gpus:
+    for gpu in gpus:
+      tf.config.experimental.set_memory_growth(gpu, True)
+    logical_gpus = tf.config.list_logical_devices('GPU')
+    print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+
+  DEVICES = [f'GPU:{i}' for i in range(8)]
+
 
 train_data = tfds.load('imdb_reviews', split='train', shuffle_files=True, batch_size=64)
 
