@@ -9,7 +9,8 @@ print('TensorFlow version:', tf.__version__)
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("--cpu", help="Using CPU")
+parser.add_argument("--cpu", help="Using CPU.")
+parser.add_argument("--ckpt", help="Enable checkpointing.")
 args = parser.parse_args()
 
 DEVICES = []
@@ -244,5 +245,6 @@ for epoch in range(num_epochs):
 
     pbar.update(step, values=metrics.items(), finalize=False)
     step += 1
-  #manager.save()
+  if args.ckpt:
+    manager.save()
   pbar.update(step, values=metrics.items(), finalize=True)
