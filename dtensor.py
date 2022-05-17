@@ -7,6 +7,12 @@ import tensorflow as tf
 from tensorflow.experimental import dtensor
 print('TensorFlow version:', tf.__version__)
 
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("--cpu", help="Using CPU")
+args = parser.parse_args()
+
+
 gpus = tf.config.list_physical_devices('GPU')
 if gpus:
   for gpu in gpus:
@@ -15,6 +21,18 @@ if gpus:
   print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
 
 DEVICES = [f'GPU:{i}' for i in range(8)]
+
+if args.cpu:
+    print("Using CPU right now.")
+    def configure_virtual_cpus(ncpu):
+      phy_devices = tf.config.list_physical_devices('CPU')
+      tf.config.set_logical_device_configuration(phy_devices[0], [
+        tf.config.LogicalDeviceConfiguration(),
+      ] * ncpu)
+    configure_virtual_cpus(8)
+    DEVICES = [f'CPU:{i}' for i in range(8)]
+
+    tf.config.list_logical_devices('CPU')
 
 train_data = tfds.load('imdb_reviews', split='train', shuffle_files=True, batch_size=64)
 
@@ -209,7 +227,7 @@ def start_checkpoint_manager(mesh, model):
   return manager
 
 
-num_epochs = 100
+num_epochs = 2
 manager = start_checkpoint_manager(mesh, model)
 
 for epoch in range(num_epochs):
@@ -224,5 +242,5 @@ for epoch in range(num_epochs):
 
     pbar.update(step, values=metrics.items(), finalize=False)
     step += 1
-  manager.save()
+  #manager.save()
   pbar.update(step, values=metrics.items(), finalize=True)
