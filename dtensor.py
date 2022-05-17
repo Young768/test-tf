@@ -11,6 +11,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--cpu", help="Using CPU.")
 parser.add_argument("--ckpt", help="Enable checkpointing.")
+parser.add_argument('--nepoch', nargs='?', const=3, type=int)
 args = parser.parse_args()
 
 DEVICES = []
@@ -230,7 +231,7 @@ def start_checkpoint_manager(mesh, model):
   return manager
 
 
-num_epochs = 100
+num_epochs = args.nepoch
 manager = start_checkpoint_manager(mesh, model)
 
 for epoch in range(num_epochs):
