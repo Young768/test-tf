@@ -11,7 +11,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--cpu", help="Using CPU.")
 parser.add_argument("--ckpt", help="Enable checkpointing.")
-parser.add_argument('--nepoch', nargs='?', const=3, type=int)
+parser.add_argument('--nepoch', nargs='?', const=3, type=int, default=3)
 args = parser.parse_args()
 
 DEVICES = []
