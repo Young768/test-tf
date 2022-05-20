@@ -97,14 +97,13 @@ layout_map['feature.*kernel'] = dtensor.Layout.batch_sharded(mesh, 'batch', rank
 layout_map['feature.*bias'] = dtensor.Layout.batch_sharded(mesh, 'batch', rank=1)
 
 with tf.keras.dtensor.experimental.layout_map_scope(layout_map):
-  inputs = tf.keras.Input((16,), batch_size=16)
-  x = tf.keras.layers.Dense(16, name='feature')(inputs)
-  x = tf.keras.layers.Dropout(0.1)(x)
-  output = tf.keras.layers.Dense(32, name='feature_2')(x)
-  model = tf.keras.Model(inputs, output)
+  model = tf.keras.Sequential([
+      tf.keras.layers.Dense(16, name='feature', input_shape=(16,)),
+      tf.keras.layers.Dropout(0.1),
+      tf.keras.layers.Dense(32, name='feature_2')
+  ])
 
-print(model.layers[1].kernel.layout)
-
+print(model.layers[2].kernel.layout)
 
 
 num_epochs = 3
