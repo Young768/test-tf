@@ -92,9 +92,12 @@ eval_metrics = {'eval_accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh
 
 
 layout_map = tf.keras.dtensor.experimental.LayoutMap(mesh=mesh)
+unsharded_layout_2d = dtensor.Layout.replicated(mesh, 2)
+unsharded_layout_1d = dtensor.Layout.replicated(mesh, 1)
 
-layout_map['feature.*kernel'] = dtensor.Layout.batch_sharded(mesh, 'batch', rank=2)
-layout_map['feature.*bias'] = dtensor.Layout.batch_sharded(mesh, 'batch', rank=1)
+
+layout_map['feature.*kernel'] = unsharded_layout_2d
+layout_map['feature.*bias'] = unsharded_layout_1d
 
 with tf.keras.dtensor.experimental.layout_map_scope(layout_map):
   inputs = tf.keras.Input((28,28), batch_size=16)
