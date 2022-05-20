@@ -2,8 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="aeace98b-325d-4834-8e95-0657fa361276" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/keras.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/process_data.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/keras_version.py" beforeDir="false" afterPath="$PROJECT_DIR$/keras_version.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
