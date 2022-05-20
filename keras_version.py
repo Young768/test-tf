@@ -102,7 +102,7 @@ layout_map['feature.*bias'] = unsharded_layout_1d
 with tf.keras.dtensor.experimental.layout_map_scope(layout_map):
   inputs = tf.keras.Input((28,28), batch_size=128)
   f = tf.keras.layers.Flatten()(inputs)
-  x = tf.keras.layers.Dense(128, activation='relu', name='feature')(inputs)
+  x = tf.keras.layers.Dense(128, activation='relu', name='feature')(f)
   output = tf.keras.layers.Dense(10, name='feature2')(x)
   model = tf.keras.Model(inputs, output)
 
