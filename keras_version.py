@@ -106,20 +106,6 @@ with tf.keras.dtensor.experimental.layout_map_scope(layout_map):
   model = tf.keras.Model(inputs, output)
 
 
-##sequential impl
-#model = tf.keras.models.Sequential([
-#  tf.keras.layers.Flatten(input_shape=(28, 28)),
-#  tf.keras.layers.Dense(128,
-#                        activation='relu',
-#                        name='d1',
-#                        kernel_layout=unsharded_layout_2d,
-#                        bias_layout=unsharded_layout_1d),
-#  tf.keras.layers.Dense(10,
-#                        name='d2',
-#                        kernel_layout=unsharded_layout_2d,
-#                        bias_layout=unsharded_layout_1d)
-#])
-
 for weight in model.weights:
   print(f'Weight name: {weight.name} with layout: {weight.layout}')
 
