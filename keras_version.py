@@ -91,23 +91,20 @@ metrics = {'accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh=mesh)}
 eval_metrics = {'eval_accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh=mesh)}
 
 
+layout_map = tf.keras.dtensor.experimental.LayoutMap(mesh=mesh)
 
+layout_map['feature.*kernel'] = dtensor.Layout.batch_sharded(mesh, 'batch', rank=2)
+layout_map['feature.*bias'] = dtensor.Layout.batch_sharded(mesh, 'batch', rank=1)
 
-unsharded_layout_2d = dtensor.Layout.replicated(mesh, 2)
-unsharded_layout_1d = dtensor.Layout.replicated(mesh, 1)
+with tf.keras.dtensor.experimental.layout_map_scope(layout_map):
+  inputs = tf.keras.Input((16,), batch_size=16)
+  x = tf.keras.layers.Dense(16, name='feature')(inputs)
+  x = tf.keras.layers.Dropout(0.1)(x)
+  output = tf.keras.layers.Dense(32, name='feature_2')(x)
+  model = tf.keras.Model(inputs, output)
 
-model = tf.keras.models.Sequential([
-  tf.keras.layers.Flatten(input_shape=(28, 28)),
-  tf.keras.layers.Dense(128,
-                        activation='relu',
-                        name='d1',
-                        kernel_layout=unsharded_layout_2d,
-                        bias_layout=unsharded_layout_1d),
-  tf.keras.layers.Dense(10,
-                        name='d2',
-                        kernel_layout=unsharded_layout_2d,
-                        bias_layout=unsharded_layout_1d)
-])
+print(model.layers[1].kernel.layout)
+
 
 
 num_epochs = 3
