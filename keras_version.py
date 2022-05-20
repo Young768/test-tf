@@ -91,7 +91,7 @@ metrics = {'accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh=mesh)}
 eval_metrics = {'eval_accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh=mesh)}
 
 
-num_epochs = 3
+
 
 unsharded_layout_2d = dtensor.Layout.replicated(mesh, 2)
 unsharded_layout_1d = dtensor.Layout.replicated(mesh, 1)
@@ -110,7 +110,9 @@ model = tf.keras.models.Sequential([
 ])
 
 
-
+num_epochs = 3
+image_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=4)
+label_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=1)
 
 for epoch in range(num_epochs):
   print("============================")
