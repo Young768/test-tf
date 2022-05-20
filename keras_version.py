@@ -108,7 +108,8 @@ with tf.keras.dtensor.experimental.layout_map_scope(layout_map):
   output = tf.keras.layers.Dense(32, name='feature_2')(x)
   model = tf.keras.Model(inputs, output)
 
-print(model.layers[1].kernel.layout)
+for weight in model.weights:
+  print(f'Weight name: {weight.name} with layout: {weight.layout}')
 
 
 for epoch in range(num_epochs):
