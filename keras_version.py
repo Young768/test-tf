@@ -120,7 +120,9 @@ model = tf.keras.models.Sequential([
                         bias_layout=unsharded_layout_1d)
 ])
 
-#print(model.layers[1].kernel.layout)
+for weight in model.weights:
+  print(f'Weight name: {weight.name} with layout: {weight.layout}')
+
 
 
 num_epochs = 3
