@@ -317,13 +317,7 @@ def resnet50(num_classes,
     else:
       x = img_input
 
-    if backend.image_data_format() == 'channels_first':
-      x = layers.Lambda(
-        lambda x: backend.permute_dimensions(x, (0, 3, 1, 2)),
-        name='transpose')(x)
-      bn_axis = 1
-    else:  # channels_last
-      bn_axis = 3
+    bn_axis = 3
 
     x = layers.ZeroPadding2D(padding=(3, 3), name='conv1_pad')(x)
     x = layers.Conv2D(
