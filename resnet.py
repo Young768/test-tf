@@ -295,13 +295,14 @@ def resnet50(num_classes,
       A Keras model instance.
   """
 
+  unsharded_layout_4d = dtensor.Layout.replicated(mesh, 4)
   unsharded_layout_2d = dtensor.Layout.replicated(mesh, 4)
   unsharded_layout_1d = dtensor.Layout.replicated(mesh, 1)
 
   layout_map = tf.keras.dtensor.experimental.LayoutMap(mesh=mesh)
 
-  layout_map['conv1.*kernel'] = unsharded_layout_2d
-  layout_map['res.*kernel'] = unsharded_layout_2d
+  layout_map['conv1.*kernel'] = unsharded_layout_4d
+  layout_map['res.*kernel'] = unsharded_layout_4d
   layout_map['fc1000.*kernel'] = unsharded_layout_2d
   layout_map['fc1000.*bias'] = unsharded_layout_1d
   layout_map['bn.*beta'] = unsharded_layout_1d
