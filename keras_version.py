@@ -106,7 +106,9 @@ with tf.keras.dtensor.experimental.layout_map_scope(layout_map):
   output = tf.keras.layers.Dense(10, name='feature2')(x)
   model = tf.keras.Model(inputs, output)
   for idx, layer in enumerate(model.layers):
-    print(idx, layer.get_weights())
+    if len(layer.get_weights()) > 0:
+      for weight in layer.get_weights():
+        print(weight.layout)
 
 
 
