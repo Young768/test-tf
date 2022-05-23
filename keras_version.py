@@ -12,8 +12,8 @@ if gpus:
 DEVICES = [f'GPU:{i}' for i in range(8)]
 mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
 
-tf.keras.backend.experimental.enable_tf_random_generator()
-tf.keras.utils.set_random_seed(1337)
+#tf.keras.backend.experimental.enable_tf_random_generator()
+#tf.keras.utils.set_random_seed(1337)
 
 mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
 
@@ -105,10 +105,7 @@ with tf.keras.dtensor.experimental.layout_map_scope(layout_map):
   x = tf.keras.layers.Dense(128, activation='relu', name='feature')(f)
   output = tf.keras.layers.Dense(10, name='feature2')(x)
   model = tf.keras.Model(inputs, output)
-  for idx, layer in enumerate(model.layers):
-    if len(layer.get_weights()) > 0:
-      for weight in layer.get_weights():
-        print(weight.layout)
+
 
 
 
