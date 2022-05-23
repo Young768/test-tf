@@ -2,6 +2,7 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 from tensorflow.experimental import dtensor
 from tensorflow.keras import regularizers
+from tensorflow.keras import backend
 
 layers = tf.keras.layers
 L2_WEIGHT_DECAY = 1e-4
@@ -100,6 +101,11 @@ eval_metrics = {'eval_accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh
 def _gen_l2_regularizer(use_l2_regularizer=True):
   return regularizers.l2(L2_WEIGHT_DECAY) if use_l2_regularizer else None
 
+
+def _gen_l2_regularizer(use_l2_regularizer=True):
+  return regularizers.l2(L2_WEIGHT_DECAY) if use_l2_regularizer else None
+
+
 def identity_block(input_tensor,
                    kernel_size,
                    filters,
@@ -118,7 +124,10 @@ def identity_block(input_tensor,
     Output tensor for the block.
   """
   filters1, filters2, filters3 = filters
-  bn_axis = 1
+  if backend.image_data_format() == 'channels_last':
+    bn_axis = 3
+  else:
+    bn_axis = 1
   conv_name_base = 'res' + str(stage) + block + '_branch'
   bn_name_base = 'bn' + str(stage) + block + '_branch'
 
@@ -196,7 +205,10 @@ def conv_block(input_tensor,
     Output tensor for the block.
   """
   filters1, filters2, filters3 = filters
-  bn_axis = 1
+  if backend.image_data_format() == 'channels_last':
+    bn_axis = 3
+  else:
+    bn_axis = 1
   conv_name_base = 'res' + str(stage) + block + '_branch'
   bn_name_base = 'bn' + str(stage) + block + '_branch'
 
@@ -315,7 +327,13 @@ def resnet50(num_classes,
     else:
       x = img_input
 
-    bn_axis = 3
+    if backend.image_data_format() == 'channels_first':
+      x = layers.Lambda(
+        lambda x: backend.permute_dimensions(x, (0, 3, 1, 2)),
+        name='transpose')(x)
+      bn_axis = 1
+    else:  # channels_last
+      bn_axis = 3
 
     x = layers.ZeroPadding2D(padding=(3, 3), name='conv1_pad')(x)
     x = layers.Conv2D(
@@ -437,7 +455,7 @@ def resnet50(num_classes,
       block='c',
       use_l2_regularizer=use_l2_regularizer)
 
-    rm_axes = [2, 3]
+    rm_axes = [1, 2] if backend.image_data_format() == 'channels_last' else [2, 3]
     x = layers.Lambda(lambda x: backend.mean(x, rm_axes), name='reduce_mean')(x)
     x = layers.Dense(
       num_classes,
