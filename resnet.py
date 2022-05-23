@@ -43,18 +43,18 @@ def normalize_img(image, label):
   #label = tf.keras.utils.to_categorical(label, num_classes=10)
   return tf.cast(image, tf.float32) / 255., label
 
-batch_size = 128
+#batch_size = 128
 
 ds_train = ds_train.map(
     normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
 ds_train = ds_train.cache()
 ds_train = ds_train.shuffle(1000)
-ds_train = ds_train.batch(batch_size)
+#ds_train = ds_train.batch(batch_size)
 ds_train = ds_train.prefetch(tf.data.AUTOTUNE)
 
 ds_test = ds_test.map(
     normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
-ds_test = ds_test.batch(batch_size)
+#ds_test = ds_test.batch(batch_size)
 ds_test = ds_test.cache()
 ds_test = ds_test.prefetch(tf.data.AUTOTUNE)
 
