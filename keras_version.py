@@ -128,7 +128,7 @@ for epoch in range(num_epochs):
     images, labels = input[0], input[1]
     images, labels = pack_dtensor_inputs(
         images, labels, image_layout, label_layout)
-
+    print(images.layout, labels.layout)
     results.update(train_step(model, images, labels, optimizer, metrics))
     for metric_name, metric in metrics.items():
       results[metric_name] = metric.result()
