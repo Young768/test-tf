@@ -42,6 +42,7 @@ batch_size = 128
 
 ds_train = ds_train.map(
     normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
+print("dataset:", ds_train)
 ds_train = ds_train.cache()
 ds_train = ds_train.shuffle(ds_info.splits['train'].num_examples)
 ds_train = ds_train.batch(batch_size)
@@ -475,9 +476,9 @@ def resnet50(num_classes,
     # Create model.
     ret = models.Model(img_input, x, name='resnet50')
 
-  for weight in ret.weights:
-    print(f'Weight name: {weight.name}')
-    print(f'Weight layout: {weight.layout}')
+  #for weight in ret.weights:
+  #  print(f'Weight name: {weight.name}')
+  #  print(f'Weight layout: {weight.layout}')
 
   return ret
 
