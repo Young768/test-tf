@@ -105,10 +105,8 @@ with tf.keras.dtensor.experimental.layout_map_scope(layout_map):
   x = tf.keras.layers.Dense(128, activation='relu', name='feature')(f)
   output = tf.keras.layers.Dense(10, name='feature2')(x)
   model = tf.keras.Model(inputs, output)
-
-
-for weight in model.weights:
-  print(f'Weight name: {weight.name} with layout: {weight.layout}')
+  for weight in model.weights:
+    print(f'Weight name: {weight.name} with layout: {weight.layout}')
 
 
 
@@ -128,7 +126,7 @@ for epoch in range(num_epochs):
     images, labels = input[0], input[1]
     images, labels = pack_dtensor_inputs(
         images, labels, image_layout, label_layout)
-    print(images.layout, labels.layout)
+    #print(images.layout, labels.layout)
     results.update(train_step(model, images, labels, optimizer, metrics))
     for metric_name, metric in metrics.items():
       results[metric_name] = metric.result()
