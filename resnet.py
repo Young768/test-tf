@@ -3,6 +3,7 @@ import tensorflow_datasets as tfds
 from tensorflow.experimental import dtensor
 from tensorflow.keras import regularizers
 from tensorflow.keras import backend
+from tensorflow.keras import initializers
 
 layers = tf.keras.layers
 L2_WEIGHT_DECAY = 1e-4
