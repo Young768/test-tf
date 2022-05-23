@@ -37,20 +37,19 @@ mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
 
 def normalize_img(image, label):
   """Normalizes images: `uint8` -> `float32`."""
+  image = np.expand_dims(image, axis=-1)
+  image = np.repeat(image, 3, axis=-1)
+  image = tf.image.resize(image, [224, 224])  # if we want to resize
+  label = tf.keras.utils.to_categorical(label, num_classes=10)
   return tf.cast(image, tf.float32) / 255., label
 
-#batch_size = 128
-x_train, y_train = ds_train
-x_train = np.expand_dims(x_train, axis=-1)
-x_train = np.repeat(x_train, 3, axis=-1)
-x_train = tf.image.resize(x_train, [224,224]) # if we want to resize
-y_train = tf.keras.utils.to_categorical(y_train , num_classes=10)
-ds_train = (x_train, y_train)
+batch_size = 128
+
 ds_train = ds_train.map(
     normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
 ds_train = ds_train.cache()
 ds_train = ds_train.shuffle(ds_info.splits['train'].num_examples)
-#ds_train = ds_train.batch(batch_size)
+ds_train = ds_train.batch(batch_size)
 ds_train = ds_train.prefetch(tf.data.AUTOTUNE)
 
 ds_test = ds_test.map(
@@ -58,6 +57,8 @@ ds_test = ds_test.map(
 ds_test = ds_test.batch(batch_size)
 ds_test = ds_test.cache()
 ds_test = ds_test.prefetch(tf.data.AUTOTUNE)
+
+
 
 
 @tf.function
