@@ -437,7 +437,7 @@ def resnet50(num_classes,
       block='c',
       use_l2_regularizer=use_l2_regularizer)
 
-    rm_axes = [1, 2] if backend.image_data_format() == 'channels_last' else [2, 3]
+    rm_axes = [2, 3]
     x = layers.Lambda(lambda x: backend.mean(x, rm_axes), name='reduce_mean')(x)
     x = layers.Dense(
       num_classes,
