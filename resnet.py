@@ -37,8 +37,8 @@ mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
 
 def normalize_img(image, label):
   """Normalizes images: `uint8` -> `float32`."""
-  image = np.expand_dims(image, axis=-1)
-  image = np.repeat(image, 3, axis=-1)
+  image = tf.expand_dims(image, axis=-1)
+  image = tf.repeat(image, 3, axis=-1)
   image = tf.image.resize(image, [224, 224])  # if we want to resize
   label = tf.keras.utils.to_categorical(label, num_classes=10)
   return tf.cast(image, tf.float32) / 255., label
