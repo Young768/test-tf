@@ -1,6 +1,7 @@
 import tensorflow as tf
 import tensorflow_datasets as tfds
 from tensorflow.experimental import dtensor
+from tensorflow.keras import regularizers
 
 layers = tf.keras.layers
 
