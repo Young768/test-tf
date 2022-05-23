@@ -296,7 +296,7 @@ def resnet50(num_classes,
   """
 
   unsharded_layout_4d = dtensor.Layout.replicated(mesh, 4)
-  unsharded_layout_2d = dtensor.Layout.replicated(mesh, 4)
+  unsharded_layout_2d = dtensor.Layout.replicated(mesh, 2)
   unsharded_layout_1d = dtensor.Layout.replicated(mesh, 1)
 
   layout_map = tf.keras.dtensor.experimental.LayoutMap(mesh=mesh)
