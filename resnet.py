@@ -4,6 +4,9 @@ from tensorflow.experimental import dtensor
 from tensorflow.keras import regularizers
 
 layers = tf.keras.layers
+L2_WEIGHT_DECAY = 1e-4
+BATCH_NORM_DECAY = 0.9
+BATCH_NORM_EPSILON = 1e-5
 
 gpus = tf.config.list_physical_devices('GPU')
 if gpus:
