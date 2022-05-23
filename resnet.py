@@ -40,7 +40,7 @@ def normalize_img(image, label):
   image = tf.expand_dims(image, axis=-1)
   image = tf.repeat(image, 3, axis=-1)
   image = tf.image.resize(image, [224, 224])  # if we want to resize
-  label = tf.keras.utils.to_categorical(label, num_classes=10)
+  #label = tf.keras.utils.to_categorical(label, num_classes=10)
   return tf.cast(image, tf.float32) / 255., label
 
 batch_size = 128
