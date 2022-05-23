@@ -5,6 +5,7 @@ from tensorflow.keras import regularizers
 from tensorflow.keras import backend
 from tensorflow.keras import initializers
 from tensorflow.keras import models
+import numpy as np
 
 layers = tf.keras.layers
 L2_WEIGHT_DECAY = 1e-4
@@ -38,14 +39,17 @@ def normalize_img(image, label):
   """Normalizes images: `uint8` -> `float32`."""
   return tf.cast(image, tf.float32) / 255., label
 
-batch_size = 128
-
+#batch_size = 128
+x_train, y_train = ds_train[0], ds_train[1]
+x_train = np.expand_dims(x_train, axis=-1)
+x_train = np.repeat(x_train, 3, axis=-1)
 ds_train = ds_train.map(
     normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
-print("dataset:", ds_train)
+x_train = tf.image.resize(x_train, [224,224]) # if we want to resize
+y_train = tf.keras.utils.to_categorical(y_train , num_classes=10)
 ds_train = ds_train.cache()
 ds_train = ds_train.shuffle(ds_info.splits['train'].num_examples)
-ds_train = ds_train.batch(batch_size)
+#ds_train = ds_train.batch(batch_size)
 ds_train = ds_train.prefetch(tf.data.AUTOTUNE)
 
 ds_test = ds_test.map(
