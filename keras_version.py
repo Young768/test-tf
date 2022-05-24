@@ -100,14 +100,28 @@ unsharded_layout_1d = dtensor.Layout.replicated(mesh, 1)
 layout_map = tf.keras.dtensor.experimental.LayoutMap(mesh=mesh)
 layout_map['feature.*kernel'] = unsharded_layout_2d
 layout_map['feature.*bias'] = unsharded_layout_1d
+layout_map['test.*beta'] = unsharded_layout_1d
+layout_map['test.*gamma'] = unsharded_layout_1d
+layout_map['test.*moving_variance'] = unsharded_layout_1d
+layout_map['test.*moving_mean'] = unsharded_layout_1d
+
+bn_axis = 1
+BATCH_NORM_DECAY = 0.9
+BATCH_NORM_EPSILON = 1e-5
 
 with tf.keras.dtensor.experimental.layout_map_scope(layout_map):
   inputs = tf.keras.Input((28,28), batch_size=128)
   f = tf.keras.layers.Flatten()(inputs)
   x = tf.keras.layers.Dense(128, activation='relu', name='feature')(f)
-  x = tf.keras.layers.BatchNormalization()(x)
+  x = tf.keras.layers.BatchNormalization(axis=bn_axis,
+      momentum=BATCH_NORM_DECAY,
+      epsilon=BATCH_NORM_EPSILON,
+      name="test")(x)
   output = tf.keras.layers.Dense(10, name='feature2')(x)
-  output = tf.keras.layers.BatchNormalization()(output)
+  output = tf.keras.layers.BatchNormalization(axis=bn_axis,
+      momentum=BATCH_NORM_DECAY,
+      epsilon=BATCH_NORM_EPSILON,
+      name="test")(output)
   model = tf.keras.Model(inputs, output)
 
 
