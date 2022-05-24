@@ -38,6 +38,8 @@ mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
 def normalize_img(image, label):
   """Normalizes images: `uint8` -> `float32`."""
   #print("raw data:", image.shape)
+  for i in image:
+    print("debug:", i.shape)
   image = tf.expand_dims(image, axis=-1)
   image = tf.repeat(image, 3, axis=-1)
   image = tf.image.resize(image, [224, 224])  # if we want to resize
