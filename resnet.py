@@ -513,14 +513,14 @@ for epoch in range(num_epochs):
   pbar = tf.keras.utils.Progbar(target=None, stateful_metrics=[])
   for input in ds_train:
     images, labels = input[0], input[1]
-    for img, lb in images, labels:
+    for img, lb in zip(images, labels):
       img, lb = pack_dtensor_inputs(
           img, lb, image_layout, label_layout)
       #print(images.layout, labels.layout)
       results.update(train_step(model, img, lb, optimizer, metrics))
       for metric_name, metric in metrics.items():
         results[metric_name] = metric.result()
-  
+
       pbar.update(step, values=results.items(), finalize=False)
       step += 1
   pbar.update(step, values=results.items(), finalize=True)
