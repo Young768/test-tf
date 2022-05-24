@@ -37,7 +37,7 @@ mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
 
 def normalize_img(image, label):
   """Normalizes images: `uint8` -> `float32`."""
-  print("raw data:", image.shape)
+  #print("raw data:", image.shape)
   image = tf.expand_dims(image, axis=-1)
   image = tf.repeat(image, 3, axis=-1)
   image = tf.image.resize(image, [224, 224])  # if we want to resize
@@ -55,7 +55,7 @@ ds_train = ds_train.prefetch(tf.data.AUTOTUNE)
 
 ds_test = ds_test.map(
     normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
-#ds_test = ds_test.batch(batch_size)
+ds_test = ds_test.batch(batch_size)
 ds_test = ds_test.cache()
 ds_test = ds_test.prefetch(tf.data.AUTOTUNE)
 
@@ -97,10 +97,8 @@ def eval_step(model, x, y, metrics):
 
 def pack_dtensor_inputs(images, labels, image_layout, label_layout):
   num_local_devices = image_layout.mesh.num_local_devices()
-  print(images.shape)
   images = tf.split(images, num_local_devices)
   labels = tf.split(labels, num_local_devices)
-  print(images.shape)
   images = dtensor.pack(images, image_layout)
   labels = dtensor.pack(labels, label_layout)
   return  images, labels
