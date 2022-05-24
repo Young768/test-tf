@@ -116,11 +116,13 @@ with tf.keras.dtensor.experimental.layout_map_scope(layout_map):
   x = tf.keras.layers.BatchNormalization(axis=bn_axis,
       momentum=BATCH_NORM_DECAY,
       epsilon=BATCH_NORM_EPSILON,
+      fused=True,
       name="test")(x)
   output = tf.keras.layers.Dense(10, name='feature2')(x)
   output = tf.keras.layers.BatchNormalization(axis=bn_axis,
       momentum=BATCH_NORM_DECAY,
       epsilon=BATCH_NORM_EPSILON,
+      fused=True,
       name="test2")(output)
   model = tf.keras.Model(inputs, output)
   for weight in model.weights:
