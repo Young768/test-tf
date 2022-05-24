@@ -123,6 +123,8 @@ with tf.keras.dtensor.experimental.layout_map_scope(layout_map):
       epsilon=BATCH_NORM_EPSILON,
       name="test2")(output)
   model = tf.keras.Model(inputs, output)
+  for weight in model.weights:
+      print(f'Weight name: {weight.name} with layout: {weight.layout}')
 
 
 
