@@ -121,7 +121,7 @@ with tf.keras.dtensor.experimental.layout_map_scope(layout_map):
   output = tf.keras.layers.BatchNormalization(axis=bn_axis,
       momentum=BATCH_NORM_DECAY,
       epsilon=BATCH_NORM_EPSILON,
-      name="test")(output)
+      name="test2")(output)
   model = tf.keras.Model(inputs, output)
 
 
