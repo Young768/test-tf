@@ -493,7 +493,7 @@ def resnet50(num_classes,
 model = resnet50(num_classes=10)
 
 num_epochs = 3
-image_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=4)
+image_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=5)
 label_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=1)
 
 for epoch in range(num_epochs):
