@@ -38,17 +38,9 @@ mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
 def normalize_img(image, label):
   """Normalizes images: `uint8` -> `float32`."""
   #print("raw data:", image.shape)
-  for i in image:
-    print("debug:", i.shape)
   image = tf.expand_dims(image, axis=-1)
-  for i in image:
-    print("expand:", i.shape)
   image = tf.repeat(image, 3, axis=-1)
-  for i in image:
-    print("repeat:", i.shape)
   image = tf.image.resize(image, [224, 224])  # if we want to resize
-  for i in image:
-    print("resize:", i.shape)
   #label = tf.keras.utils.to_categorical(label, num_classes=10)
   return tf.cast(image, tf.float32) / 255., label
 
@@ -56,6 +48,12 @@ def normalize_img(image, label):
 
 ds_train = ds_train.map(
     normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
+for test in ds_train:
+  images, labels = test[0], test[1]
+  for i in images:
+    print("shape:", i.shape)
+  break
+
 ds_train = ds_train.cache()
 ds_train = ds_train.shuffle(1000)
 #ds_train = ds_train.batch(batch_size)
