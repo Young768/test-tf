@@ -97,6 +97,7 @@ def eval_step(model, x, y, metrics):
 
 def pack_dtensor_inputs(images, labels, image_layout, label_layout):
   num_local_devices = image_layout.mesh.num_local_devices()
+  print("shape:", images.shape)
   images = tf.split(images, num_local_devices)
   labels = tf.split(labels, num_local_devices)
   images = dtensor.pack(images, image_layout)
