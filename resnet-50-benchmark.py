@@ -711,6 +711,7 @@ def train_step(model, x, y, optimizer):
     logits = model(x, training=True)
     loss = loss_func(y, logits)
     loss += tf.reduce_sum(model.losses)
+    loss_copy = loss
 
   grads = tape.gradient(loss, model.trainable_variables)
 
@@ -719,10 +720,10 @@ def train_step(model, x, y, optimizer):
           print("Dimensions don't match!!")
   optimizer.apply_gradients(zip(grads, model.trainable_variables))
 
-  #train_top1.update_state(y, logits)
-  #train_top5.update_state(y, logits)
+  train_top1.update_state(y, logits)
+  train_top5.update_state(y, logits)
 
-  return loss
+  return loss_copy
 
 
 @tf.function
@@ -782,15 +783,15 @@ for epoch in range(num_epochs):
   epoch_run_time = time.time() - epoch_start
   print("epoch: %d time_taken: %.1f" % (epoch, epoch_run_time))
 
-  #for metric in eval_metrics.values():
-  #    metric.reset_state()
-  #nstep_per_valid = 10
-  #for _ in range(nstep_per_valid):
-  #    y = next(valid_iter)
-  #    images, labels = y
-  #    images, labels = pack_dtensor_inputs(
-  #        images, labels, image_layout, label_layout)
-  #    results.update(eval_step(model, images, labels, eval_metrics))
+  for metric in eval_metrics.values():
+      metric.reset_state()
+  nstep_per_valid = 10
+  for _ in range(nstep_per_valid):
+      y = next(valid_iter)
+      images, labels = y
+      images, labels = pack_dtensor_inputs(
+          images, labels, image_layout, label_layout)
+      results.update(eval_step(model, images, labels, eval_metrics))
 
   #for metric_name, metric in eval_metrics.items():
   #    results[metric_name] = metric.result()
