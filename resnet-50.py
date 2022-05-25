@@ -5,6 +5,8 @@ from tensorflow.keras import backend
 from tensorflow.keras import regularizers
 from tensorflow.keras import initializers
 from tensorflow.keras import models
+import os
+import sys
 
 import argparse
 
@@ -583,7 +585,7 @@ def parse_cmdline(init_vals):
                  'validation-*'.""")
 
   FLAGS, unknown_args = p.parse_known_args()
-  
+
   vals = init_vals
   vals['data_dir'] = FLAGS.data_dir
 
