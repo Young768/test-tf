@@ -577,9 +577,9 @@ def image_set(filenames, batch_size, height, width, training=False,
 
         return ds
 
-image_format='channels_last'
+#image_format='channels_last'
 
-backend.set_image_data_format(image_format)
+#backend.set_image_data_format(image_format)
 
 model = resnet50(NUM_CLASSES)
 
