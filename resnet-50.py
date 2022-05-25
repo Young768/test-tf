@@ -716,7 +716,7 @@ for epoch in range(num_epochs):
   for _ in range(nstep_per_epoch):
     global_steps += 1
     if global_steps == 1:
-        tart_time = time.time()
+        start_time = time.time()
     x = next(train_iter)
     images, labels = x
     images, labels = pack_dtensor_inputs(
