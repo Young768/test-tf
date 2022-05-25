@@ -8,6 +8,7 @@ from tensorflow.keras import models
 import os
 import sys
 import time
+import datetime
 import argparse
 
 layers = tf.keras.layers
@@ -28,7 +29,7 @@ tf.keras.backend.experimental.enable_tf_random_generator()
 tf.keras.utils.set_random_seed(1337)
 
 mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
-batch_size = 128
+batch_size = 16
 
 (ds_train, ds_test), ds_info = tfds.load(
     'mnist',
@@ -58,38 +59,7 @@ ds_test = ds_test.cache()
 ds_test = ds_test.prefetch(tf.data.AUTOTUNE)
 
 
-@tf.function
-def train_step(model, x, y, optimizer, metrics):
-  with tf.GradientTape() as tape:
-    logits = model(x, training=True)
-    # tf.reduce_sum sums the batch sharded per-example loss to a replicated
-    # global loss (scalar).
-    loss = tf.reduce_sum(tf.keras.losses.sparse_categorical_crossentropy(
-        y, logits, from_logits=True))
 
-  gradients = tape.gradient(loss, model.trainable_variables)
-  optimizer.apply_gradients(zip(gradients, model.trainable_variables))
-
-  for metric in metrics.values():
-    metric.update_state(y_true=y, y_pred=logits)
-
-  loss_per_sample = loss / len(x)
-  results = {'loss': loss_per_sample}
-  return results
-
-
-@tf.function
-def eval_step(model, x, y, metrics):
-  logits = model(x, training=False)
-  loss = tf.reduce_sum(tf.keras.losses.sparse_categorical_crossentropy(
-        y, logits, from_logits=True))
-
-  for metric in metrics.values():
-    metric.update_state(y_true=y, y_pred=logits)
-
-  loss_per_sample = loss / len(x)
-  results = {'eval_loss': loss_per_sample}
-  return results
 
 def pack_dtensor_inputs(images, labels, image_layout, label_layout):
   num_local_devices = image_layout.mesh.num_local_devices()
@@ -99,9 +69,6 @@ def pack_dtensor_inputs(images, labels, image_layout, label_layout):
   labels = dtensor.pack(labels, label_layout)
   return  images, labels
 
-optimizer = tf.keras.dtensor.experimental.optimizers.Adam(0.01, mesh=mesh)
-metrics = {'accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh=mesh)}
-eval_metrics = {'eval_accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh=mesh)}
 
 layers = tf.keras.layers
 
@@ -646,10 +613,8 @@ def image_set(filenames, batch_size, height, width, training=False,
         return ds
 
 
-model = resnet50(NUM_CLASSES)
 
-
-num_epochs = 100
+num_epochs = 300
 image_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=4)
 label_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=2)
 
@@ -660,6 +625,15 @@ distort_color=False
 train_idx_files = None
 valid_idx_files = None
 
+def get_num_records(filenames):
+  def count_records(tf_record_filename):
+    count = 0
+    for _ in tf.compat.v1.python_io.tf_record_iterator(tf_record_filename):
+      count += 1
+    return count
+  nfile = len(filenames)
+  return (count_records(filenames[0])*(nfile-1) +
+          count_records(filenames[-1]))
 
 def parse_cmdline(init_vals):
   f = argparse.ArgumentDefaultsHelpFormatter
@@ -667,7 +641,7 @@ def parse_cmdline(init_vals):
 
   p.add_argument('--data_dir',
                  default=init_vals.get('data_dir'),
-                 required=False,
+                 required=True,
                  help="""Path to dataset in TFRecord format (aka Example
                  protobufs). Files should be named 'train-*' and
                  'validation-*'.""")
@@ -684,10 +658,21 @@ default_args = {
 }
 args = parse_cmdline(default_args)
 data_dir = args['data_dir']
+num_iter = 300
+image_format='channels_last'
+
+backend.set_image_data_format(image_format)
 
 file_format = os.path.join(data_dir, '%s-*')
 train_files = sorted(tf.io.gfile.glob(file_format % 'train'))
 valid_files = sorted(tf.io.gfile.glob(file_format % 'validation'))
+
+num_train_samples = get_num_records(train_files)
+num_valid_samples = get_num_records(valid_files)
+
+nstep_per_epoch = min(num_iter,
+                          num_train_samples // (batch_size * len(DEVICES)))
+nstep_per_valid = min(10, num_valid_samples // (batch_size * len(DEVICES)))
 
 num_preproc_threads = 4 if dali_mode else 10
 train_input = image_set(train_files, batch_size,
@@ -700,19 +685,77 @@ valid_input = image_set(valid_files, batch_size,
         deterministic=False, num_threads=num_preproc_threads,
         use_dali=dali_mode, idx_filenames=valid_idx_files)
 
+
+model = resnet50(NUM_CLASSES)
+optimizer = tf.keras.dtensor.experimental.optimizers.SGD(learning_rate=0.01, mesh=mesh)
+metrics = {'accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh=mesh)}
+eval_metrics = {'eval_accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh=mesh)}
+
+loss_func = tf.keras.losses.SparseCategoricalCrossentropy()
+
+train_top1 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=1,
+                                                              name='train_top1', mesh=mesh)
+train_top5 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=5,
+                                                              name='train_top5', mesh=mesh)
+
+val_loss = tf.keras.metrics.Mean(name='val_loss', dtype=tf.float32)
+
+val_top1 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=1,
+                                                            name='val_top1', mesh=mesh)
+val_top5 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=5,
+                                                            name='val_top5', mesh=mesh)
+
+@tf.function
+def train_step(model, x, y, optimizer):
+  with tf.GradientTape() as tape:
+    logits = model(x, training=True)
+    loss = loss_func(y, logits)
+    loss += tf.reduce_sum(model.losses)
+
+  grads = tape.gradient(loss, model.trainable_variables)
+
+  for x_0, x_1 in zip(grads, model.trainable_variables):
+      if x_0.shape != x_1.shape:
+          print("Dimensions don't match!!")
+  optimizer.apply_gradients(zip(grads, model.trainable_variables))
+
+  #train_top1.update_state(y, logits)
+  #train_top5.update_state(y, logits)
+
+  return loss
+
+
+@tf.function
+def eval_step(model, x, y, metrics):
+  logits = model(x, training=False)
+  loss = tf.reduce_sum(tf.keras.losses.sparse_categorical_crossentropy(
+        y, logits, from_logits=False))
+
+  for metric in metrics.values():
+    metric.update_state(y_true=y, y_pred=logits)
+
+  loss_per_sample = loss / len(x)
+  results = {'eval_loss': loss_per_sample}
+  return results
+
 global_steps = 0
 log_steps = 10
+initial_epoch = 0
 
 for epoch in range(num_epochs):
   print("============================")
   print("Epoch: ", epoch)
-  for metric in metrics.values():
-    metric.reset_state()
+  epoch_start = time.time()
+  total_loss = 0.0
+  num_batches = 0
+  train_top1.reset_states()
+  train_top5.reset_states()
+
+  step = 0
   results = {}
   pbar = tf.keras.utils.Progbar(target=None, stateful_metrics=[])
   train_iter = iter(train_input)
   valid_iter = iter(valid_input)
-  nstep_per_epoch = 100
   for _ in range(nstep_per_epoch):
     global_steps += 1
     if global_steps == 1:
@@ -722,33 +765,35 @@ for epoch in range(num_epochs):
     images, labels = pack_dtensor_inputs(
         images, labels, image_layout, label_layout)
     #print(images.layout, labels.layout)
-    results.update(train_step(model, images, labels, optimizer, metrics))
-    for metric_name, metric in metrics.items():
-      results[metric_name] = metric.result()
-
+    total_loss += train_step(model, images, labels, optimizer)
     if global_steps % log_steps == 0:
         timestamp = time.time()
         elapsed_time = timestamp - start_time
         examples_per_second = \
             (batch_size * len(DEVICES) * log_steps) / elapsed_time
         print("global_step: %d images_per_sec: %.1f" % (global_steps,
-                                                        examples_per_second))
+                                                            examples_per_second))
         start_time = timestamp
+    num_batches += 1
 
-  pbar.update(global_steps, values=results.items(), finalize=True)
+  train_loss = total_loss / num_batches
 
-  for metric in eval_metrics.values():
-    metric.reset_state()
-  nstep_per_valid = 10
-  for _ in range(nstep_per_valid):
-    y = next(valid_iter)
-    images, labels = y
-    images, labels = pack_dtensor_inputs(
-        images, labels, image_layout, label_layout)
-    results.update(eval_step(model, images, labels, eval_metrics))
+    # on_epoch_end
+  epoch_run_time = time.time() - epoch_start
+  print("epoch: %d time_taken: %.1f" % (epoch, epoch_run_time))
 
-  for metric_name, metric in eval_metrics.items():
-    results[metric_name] = metric.result()
+  #for metric in eval_metrics.values():
+  #    metric.reset_state()
+  #nstep_per_valid = 10
+  #for _ in range(nstep_per_valid):
+  #    y = next(valid_iter)
+  #    images, labels = y
+  #    images, labels = pack_dtensor_inputs(
+  #        images, labels, image_layout, label_layout)
+  #    results.update(eval_step(model, images, labels, eval_metrics))
 
-  for metric_name, metric in results.items():
-    print(f"{metric_name}: {metric.numpy()}")
+  #for metric_name, metric in eval_metrics.items():
+  #    results[metric_name] = metric.result()
+  #output_str = ("loss: {} - top1: {} - top5: {} ")
+  #print(output_str.format(train_loss, train_top1.result(),
+  #                          train_top5.result()))
