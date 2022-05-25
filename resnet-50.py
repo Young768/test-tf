@@ -494,6 +494,26 @@ def resnet50(num_classes,
 
     return ret
 
+def _parse_and_preprocess_image_record(record, height, width,
+                                       deterministic=False, random_crop=False,
+                                       distort_color=False):
+  imgdata, label, bbox, text = _deserialize_image_record(record)
+  label -= 1 # Change to 0-based (don't use background class)
+  with tf.name_scope('preprocess_train'):
+    try:    image = _decode_jpeg(imgdata, channels=3)
+    except: image = tf.image.decode_png(imgdata, channels=3)
+
+    image = _crop_and_resize_image(image, bbox, height, width, deterministic, random_crop)
+
+    # image comes out of crop as float32, which is what distort_color expects
+    if distort_color:
+      image = _distort_image_color(image)
+    image = tf.cast(image, tf.float32)
+    if random_crop:
+      image = tf.image.random_flip_left_right(image,
+                    seed=11 * (1 + hvd.rank()) if deterministic else None)
+    return image, label
+
 
 def image_set(filenames, batch_size, height, width, training=False,
               distort_color=False, num_threads=10, nsummary=10,
