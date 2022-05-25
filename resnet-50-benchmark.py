@@ -728,12 +728,14 @@ def train_step(model, x, y, optimizer):
 
 @tf.function
 def eval_step(model, x, y):
+  print("debug1")
   logits = model(x, training=False)
   loss = loss_func(y, logits)
-
+  print("debug3")
   val_loss.update_state(loss)
   val_top1.update_state(y, logits)
   val_top5.update_state(y, logits)
+  print("debug2")
 
 global_steps = 0
 log_steps = 10
@@ -787,7 +789,6 @@ for epoch in range(num_epochs):
       images, labels = y
       images, labels = pack_dtensor_inputs(
             images, labels, image_layout, label_layout)
-      print("debug")
       eval_step(model, images, labels)
 
   output_str = ("loss: {} - top1: {} - top5: {} - val_loss: {} - "
