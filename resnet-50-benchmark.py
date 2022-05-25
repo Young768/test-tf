@@ -706,13 +706,11 @@ val_top5 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=5,
                                                             name='val_top5', mesh=mesh)
 
 @tf.function
-def train_step(model, x, y, optimizer):
+def train_step(x, y, optimizer):
   with tf.GradientTape() as tape:
     logits = model(x, training=True)
-    #loss = loss_func(y, logits)
-    #loss += tf.reduce_sum(model.losses)
-    loss = tf.reduce_sum(tf.keras.losses.sparse_categorical_crossentropy(
-        y, logits, from_logits=True))
+    loss = loss_func(y, logits)
+    loss += tf.reduce_sum(model.losses)
     loss_copy = loss
 
   grads = tape.gradient(loss, model.trainable_variables)
@@ -768,7 +766,7 @@ for epoch in range(num_epochs):
     images, labels = pack_dtensor_inputs(
         images, labels, image_layout, label_layout)
     #print(images.layout, labels.layout)
-    total_loss += train_step(model, images, labels, optimizer)
+    total_loss += train_step(images, labels, optimizer)
     if global_steps % log_steps == 0:
         timestamp = time.time()
         elapsed_time = timestamp - start_time
