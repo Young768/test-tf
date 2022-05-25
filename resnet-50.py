@@ -577,6 +577,9 @@ def image_set(filenames, batch_size, height, width, training=False,
 
         return ds
 
+image_format='channels_last'
+
+backend.set_image_data_format(image_format)
 
 model = resnet50(NUM_CLASSES)
 
@@ -635,9 +638,7 @@ valid_input = image_set(valid_files, batch_size,
 global_steps = 0
 log_steps = 10
 
-image_format='channels_last'
 
-backend.set_image_data_format(image_format)
 
 @tf.function
 def train_step(model, x, y, optimizer, metrics):
