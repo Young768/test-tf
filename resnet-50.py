@@ -494,6 +494,54 @@ def resnet50(num_classes,
 
     return ret
 
+def _decode_jpeg(imgdata, channels=3):
+  return tf.image.decode_jpeg(imgdata, channels=channels,
+                              fancy_upscaling=False,
+                              dct_method='INTEGER_FAST')
+
+def _crop_and_resize_image(image, original_bbox, height, width, deterministic=False, random_crop=False):
+  with tf.name_scope('random_crop_and_resize'):
+    eval_crop_ratio = 0.8
+    if random_crop:
+      bbox_begin, bbox_size, bbox = \
+          tf.image.sample_distorted_bounding_box(
+              tf.shape(image),
+              bounding_boxes=tf.zeros(shape=[1,0,4]), # No bounding boxes
+              min_object_covered=0.1,
+              aspect_ratio_range=[0.8, 1.25],
+              area_range=[0.1, 1.0],
+              max_attempts=100,
+              seed=7 * (1+hvd.rank()) if deterministic else 0,
+              use_image_if_no_bounding_boxes=True)
+      image = tf.slice(image, bbox_begin, bbox_size)
+    else:
+      # Central crop
+      image = tf.image.central_crop(image, eval_crop_ratio)
+    image = tf.compat.v1.image.resize_images(
+        image,
+        [height, width],
+        tf.image.ResizeMethod.BILINEAR,
+        align_corners=False)
+    image.set_shape([height, width, 3])
+    return image
+
+def _distort_image_color(image, order=0):
+  with tf.name_scope('distort_color'):
+    image = tf.math.multiply(image, 1. / 255.)
+    brightness = lambda img: tf.image.random_brightness(img, max_delta=32. / 255.)
+    saturation = lambda img: tf.image.random_saturation(img, lower=0.5, upper=1.5)
+    hue        = lambda img: tf.image.random_hue(img, max_delta=0.2)
+    contrast   = lambda img: tf.image.random_contrast(img, lower=0.5, upper=1.5)
+    if order == 0: ops = [brightness, saturation, hue, contrast]
+    else:          ops = [brightness, contrast, saturation, hue]
+    for op in ops:
+      image = op(image)
+    # The random_* ops do not necessarily clamp the output range
+    image = tf.clip_by_value(image, 0.0, 1.0)
+    # Restore the original scaling
+    image = tf.multiply(image, 255.)
+    return image
+
 def _deserialize_image_record(record):
   feature_map = {
       'image/encoded':          tf.io.FixedLenFeature([ ], tf.string, ''),
