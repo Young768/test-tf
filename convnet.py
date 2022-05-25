@@ -29,7 +29,7 @@ mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
 
 def normalize_img(image, label):
   """Normalizes images: `uint8` -> `float32`."""
-  image = image.reshape((image.shape[0], 32, 32, 1))
+  image = tf.reshape((32, 32, 1))
   label = to_categorical(label)
   return tf.cast(image, tf.float32) / 255., label
 
