@@ -729,11 +729,11 @@ def train_step(model, x, y, optimizer):
 @tf.function
 def eval_step(model, x, y):
   logits = model(x, training=False)
-  loss = loss_func(y, logits)
+  loss = tf.reduce_sum(tf.keras.losses.sparse_categorical_crossentropy(
+      y, logits, from_logits=True))
   val_loss.update_state(loss)
   val_top1.update_state(y, logits)
   val_top5.update_state(y, logits)
-  return 0
 
 global_steps = 0
 log_steps = 10
