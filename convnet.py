@@ -125,7 +125,7 @@ BATCH_NORM_EPSILON = 1e-5
 with tf.keras.dtensor.experimental.layout_map_scope(layout_map):
   inputs = tf.keras.Input((32, 32, 3), batch_size=128)
   f = tf.keras.layers.Conv2D(32, (3, 3), activation='relu', name='conv1')(inputs)
-  x = tf.kera.layers.MaxPooling2D((2, 2), name='pool1')(f)
+  x = tf.keras.layers.MaxPooling2D((2, 2), name='pool1')(f)
   x = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', name='conv2')(x)
   x = tf.kera.layers.MaxPooling2D((2, 2), name='pool2')(x)
   x = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', name='conv3')(x)
