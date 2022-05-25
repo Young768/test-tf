@@ -4,6 +4,7 @@ from tensorflow.experimental import dtensor
 from tensorflow.keras import backend
 from tensorflow.keras import regularizers
 from tensorflow.keras import initializers
+from tensorflow.keras import models
 
 import argparse
 
