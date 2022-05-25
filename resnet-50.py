@@ -710,7 +710,7 @@ for epoch in range(num_epochs):
   pbar = tf.keras.utils.Progbar(target=None, stateful_metrics=[])
   train_iter = iter(train_input)
   nstep_per_epoch = 100
-  for _ in nstep_per_epoch:
+  for _ in range(nstep_per_epoch):
     x = next(train_iter)
     images, labels = x
     images, labels = pack_dtensor_inputs(
@@ -727,7 +727,7 @@ for epoch in range(num_epochs):
   for metric in eval_metrics.values():
     metric.reset_state()
   nstep_per_valid = 10
-  for _ in nstep_per_valid:
+  for _ in range(nstep_per_valid):
     y = next(valid_input)
     images, labels = y
     images, labels = pack_dtensor_inputs(
