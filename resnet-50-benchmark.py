@@ -641,7 +641,7 @@ def parse_cmdline(init_vals):
 
   p.add_argument('--data_dir',
                  default=init_vals.get('data_dir'),
-                 required=False,
+                 required=True,
                  help="""Path to dataset in TFRecord format (aka Example
                  protobufs). Files should be named 'train-*' and
                  'validation-*'.""")
