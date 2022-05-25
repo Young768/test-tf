@@ -767,9 +767,8 @@ for epoch in range(num_epochs):
         timestamp = time.time()
         elapsed_time = timestamp - start_time
         examples_per_second = \
-            (batch_size * hvd.size() * log_steps) / elapsed_time
-        if hvd.rank() == 0:
-            print("global_step: %d images_per_sec: %.1f" % (global_steps,
+            (batch_size * len(DEVICES) * log_steps) / elapsed_time
+        print("global_step: %d images_per_sec: %.1f" % (global_steps,
                                                             examples_per_second))
         start_time = timestamp
     num_batches += 1
@@ -778,8 +777,7 @@ for epoch in range(num_epochs):
 
     # on_epoch_end
     epoch_run_time = time.time() - epoch_start
-    if hvd.rank() == 0:
-        print("epoch: %d time_taken: %.1f" % (epoch, epoch_run_time))
+    print("epoch: %d time_taken: %.1f" % (epoch, epoch_run_time))
 
     pbar.update(step, values=results.items(), finalize=False)
     step += 1
