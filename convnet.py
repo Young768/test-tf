@@ -111,7 +111,7 @@ unsharded_layout_1d = dtensor.Layout.replicated(mesh, 1)
 layout_map = tf.keras.dtensor.experimental.LayoutMap(mesh=mesh)
 layout_map['conv.*kernel'] = unsharded_layout_4d
 layout_map['conv.*bias'] = unsharded_layout_1d
-layout_map['feature.*kernel'] = unsharded_layout_4d
+layout_map['feature.*kernel'] = unsharded_layout_2d
 layout_map['feature.*bias'] = unsharded_layout_1d
 layout_map['test.*beta'] = unsharded_layout_1d
 layout_map['test.*gamma'] = unsharded_layout_1d
