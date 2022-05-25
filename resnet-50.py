@@ -627,7 +627,7 @@ default_args = {
 
 args = parse_cmdline(default_args)
 data_dir = args['data_dir']
-num_epochs = params['num_iter']
+num_epochs = args['num_iter']
 nstep_per_epoch = num_epochs
 
 
