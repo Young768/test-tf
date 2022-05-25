@@ -727,14 +727,17 @@ def train_step(model, x, y, optimizer):
 
 
 @tf.function
-def eval_step(model, x, y):
+def eval_step(model, x, y, metrics):
   logits = model(x, training=False)
   loss = tf.reduce_sum(tf.keras.losses.sparse_categorical_crossentropy(
-      y, logits, from_logits=False))
-  #val_loss.update_state(loss)
-  #val_top1.update_state(y, logits)
-  #val_top5.update_state(y, logits)
-  #return  loss
+        y, logits, from_logits=False))
+
+  for metric in metrics.values():
+    metric.update_state(y_true=y, y_pred=logits)
+
+  loss_per_sample = loss / len(x)
+  results = {'eval_loss': loss_per_sample}
+  return results
 
 global_steps = 0
 log_steps = 10
@@ -780,18 +783,18 @@ for epoch in range(num_epochs):
   epoch_run_time = time.time() - epoch_start
   print("epoch: %d time_taken: %.1f" % (epoch, epoch_run_time))
 
-  val_loss.reset_states()
-  val_top1.reset_states()
-  val_top5.reset_states()
+  for metric in eval_metrics.values():
+      metric.reset_state()
+  nstep_per_valid = 10
   for _ in range(nstep_per_valid):
       y = next(valid_iter)
       images, labels = y
       images, labels = pack_dtensor_inputs(
-            images, labels, image_layout, label_layout)
-      eval_step(model, images, labels)
+          images, labels, image_layout, label_layout)
+      results.update(eval_step(model, images, labels, eval_metrics))
 
-  output_str = ("loss: {} - top1: {} - top5: {} - val_loss: {} - "
-                  "val_top1: {} - val_top5: {}")
+  for metric_name, metric in eval_metrics.items():
+      results[metric_name] = metric.result()
+  output_str = ("loss: {} - top1: {} - top5: {} ")
   print(output_str.format(train_loss, train_top1.result(),
-                            train_top5.result(), val_loss.result(),
-                            val_top1.result(), val_top5.result()))
+                            train_top5.result()))
