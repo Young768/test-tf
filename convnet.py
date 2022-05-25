@@ -29,16 +29,8 @@ mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
 
 def normalize_img(image, label):
   """Normalizes images: `uint8` -> `float32`."""
-  #image = tf.expand_dims(image, axis=-1)
-
-  # [optional]: we may need 3 channel (instead of 1)
-  #image = tf.repeat(image, 3, axis=-1)
-
-  # resize the input shape , i.e. old shape: 28, new shape: 32
-  image = tf.image.resize(image, [32, 32])  # if we want to resize
-
-  # one hot
-  #label = tf.keras.utils.to_categorical(label, num_classes=10)
+  image = trainX.reshape((image.shape[0], 32, 32, 1))
+  label = to_categorical(label)
   return tf.cast(image, tf.float32) / 255., label
 
 #batch_size = 128
