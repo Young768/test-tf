@@ -29,7 +29,7 @@ tf.keras.backend.experimental.enable_tf_random_generator()
 tf.keras.utils.set_random_seed(1337)
 
 mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
-batch_size = 128
+batch_size = 16
 
 (ds_train, ds_test), ds_info = tfds.load(
     'mnist',
@@ -687,7 +687,7 @@ valid_input = image_set(valid_files, batch_size,
 
 
 model = resnet50(NUM_CLASSES)
-optimizer = tf.keras.dtensor.experimental.optimizers.Adam(learning_rate=0.01, mesh=mesh)
+optimizer = tf.keras.dtensor.experimental.optimizers.SGD(learning_rate=0.01, mesh=mesh)
 metrics = {'accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh=mesh)}
 eval_metrics = {'eval_accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh=mesh)}
 
