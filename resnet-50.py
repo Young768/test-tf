@@ -30,74 +30,6 @@ tf.keras.utils.set_random_seed(1337)
 mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
 batch_size = 128
 
-(ds_train, ds_test), ds_info = tfds.load(
-    'mnist',
-    split=['train', 'test'],
-    shuffle_files=True,
-    as_supervised=True,
-    with_info=True,
-)
-
-def normalize_img(image, label):
-  """Normalizes images: `uint8` -> `float32`."""
-  return tf.cast(image, tf.float32) / 255., label
-
-
-
-ds_train = ds_train.map(
-    normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
-ds_train = ds_train.cache()
-ds_train = ds_train.shuffle(ds_info.splits['train'].num_examples)
-ds_train = ds_train.batch(batch_size)
-ds_train = ds_train.prefetch(tf.data.AUTOTUNE)
-
-ds_test = ds_test.map(
-    normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
-ds_test = ds_test.batch(batch_size)
-ds_test = ds_test.cache()
-ds_test = ds_test.prefetch(tf.data.AUTOTUNE)
-
-
-@tf.function
-def train_step(model, x, y, optimizer, metrics):
-  with tf.GradientTape() as tape:
-    logits = model(x, training=True)
-    # tf.reduce_sum sums the batch sharded per-example loss to a replicated
-    # global loss (scalar).
-    loss = tf.reduce_sum(tf.keras.losses.sparse_categorical_crossentropy(
-        y, logits, from_logits=True))
-
-  gradients = tape.gradient(loss, model.trainable_variables)
-  optimizer.apply_gradients(zip(gradients, model.trainable_variables))
-
-  for metric in metrics.values():
-    metric.update_state(y_true=y, y_pred=logits)
-
-  loss_per_sample = loss / len(x)
-  results = {'loss': loss_per_sample}
-  return results
-
-
-@tf.function
-def eval_step(model, x, y, metrics):
-  logits = model(x, training=False)
-  loss = tf.reduce_sum(tf.keras.losses.sparse_categorical_crossentropy(
-        y, logits, from_logits=True))
-
-  for metric in metrics.values():
-    metric.update_state(y_true=y, y_pred=logits)
-
-  loss_per_sample = loss / len(x)
-  results = {'eval_loss': loss_per_sample}
-  return results
-
-def pack_dtensor_inputs(images, labels, image_layout, label_layout):
-  num_local_devices = image_layout.mesh.num_local_devices()
-  images = tf.split(images, num_local_devices)
-  labels = tf.split(labels, num_local_devices)
-  images = dtensor.pack(images, image_layout)
-  labels = dtensor.pack(labels, label_layout)
-  return  images, labels
 
 optimizer = tf.keras.dtensor.experimental.optimizers.Adam(0.01, mesh=mesh)
 metrics = {'accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh=mesh)}
@@ -702,6 +634,47 @@ valid_input = image_set(valid_files, batch_size,
 
 global_steps = 0
 log_steps = 10
+
+@tf.function
+def train_step(model, x, y, optimizer, metrics):
+  with tf.GradientTape() as tape:
+    logits = model(x, training=True)
+    # tf.reduce_sum sums the batch sharded per-example loss to a replicated
+    # global loss (scalar).
+    loss = tf.reduce_sum(tf.keras.losses.sparse_categorical_crossentropy(
+        y, logits, from_logits=True))
+
+  gradients = tape.gradient(loss, model.trainable_variables)
+  optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+
+  for metric in metrics.values():
+    metric.update_state(y_true=y, y_pred=logits)
+
+  loss_per_sample = loss / len(x)
+  results = {'loss': loss_per_sample}
+  return results
+
+
+@tf.function
+def eval_step(model, x, y, metrics):
+  logits = model(x, training=False)
+  loss = tf.reduce_sum(tf.keras.losses.sparse_categorical_crossentropy(
+        y, logits, from_logits=True))
+
+  for metric in metrics.values():
+    metric.update_state(y_true=y, y_pred=logits)
+
+  loss_per_sample = loss / len(x)
+  results = {'eval_loss': loss_per_sample}
+  return results
+
+def pack_dtensor_inputs(images, labels, image_layout, label_layout):
+  num_local_devices = image_layout.mesh.num_local_devices()
+  images = tf.split(images, num_local_devices)
+  labels = tf.split(labels, num_local_devices)
+  images = dtensor.pack(images, image_layout)
+  labels = dtensor.pack(labels, label_layout)
+  return  images, labels
 
 for epoch in range(num_epochs):
   print("============================")
