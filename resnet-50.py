@@ -494,6 +494,26 @@ def resnet50(num_classes,
 
     return ret
 
+def _deserialize_image_record(record):
+  feature_map = {
+      'image/encoded':          tf.io.FixedLenFeature([ ], tf.string, ''),
+      'image/class/label':      tf.io.FixedLenFeature([1], tf.int64,  -1),
+      'image/class/text':       tf.io.FixedLenFeature([ ], tf.string, ''),
+      'image/object/bbox/xmin': tf.io.VarLenFeature(dtype=tf.float32),
+      'image/object/bbox/ymin': tf.io.VarLenFeature(dtype=tf.float32),
+      'image/object/bbox/xmax': tf.io.VarLenFeature(dtype=tf.float32),
+      'image/object/bbox/ymax': tf.io.VarLenFeature(dtype=tf.float32)
+  }
+  with tf.name_scope('deserialize_image_record'):
+    obj = tf.io.parse_single_example(record, feature_map)
+    imgdata = obj['image/encoded']
+    label   = tf.cast(obj['image/class/label'], tf.int32)
+    bbox    = tf.stack([obj['image/object/bbox/%s'%x].values
+                        for x in ['ymin', 'xmin', 'ymax', 'xmax']])
+    bbox = tf.transpose(tf.expand_dims(bbox, 0), [0,2,1])
+    text    = obj['image/class/text']
+    return imgdata, label, bbox, text
+
 def _parse_and_preprocess_image_record(record, height, width,
                                        deterministic=False, random_crop=False,
                                        distort_color=False):
