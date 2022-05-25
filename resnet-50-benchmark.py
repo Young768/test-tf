@@ -690,7 +690,7 @@ optimizer = tf.keras.dtensor.experimental.optimizers.SGD(learning_rate=0.01, mes
 metrics = {'accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh=mesh)}
 eval_metrics = {'eval_accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh=mesh)}
 
-loss_func = keras.losses.SparseCategoricalCrossentropy()
+loss_func = tf.keras.losses.SparseCategoricalCrossentropy()
 
 train_top1 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=1,
                                                               name='train_top1', mesh=mesh)
