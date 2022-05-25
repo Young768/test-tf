@@ -700,18 +700,22 @@ valid_input = image_set(valid_files, batch_size,
         deterministic=False, num_threads=num_preproc_threads,
         use_dali=dali_mode, idx_filenames=valid_idx_files)
 
+global_steps = 0
+
 for epoch in range(num_epochs):
   print("============================")
   print("Epoch: ", epoch)
   for metric in metrics.values():
     metric.reset_state()
-  step = 0
   results = {}
   pbar = tf.keras.utils.Progbar(target=None, stateful_metrics=[])
   train_iter = iter(train_input)
   valid_iter = iter(valid_input)
   nstep_per_epoch = 100
   for _ in range(nstep_per_epoch):
+    global_steps += 1
+    if global_steps == 1:
+        tart_time = time.time()
     x = next(train_iter)
     images, labels = x
     images, labels = pack_dtensor_inputs(
@@ -721,8 +725,15 @@ for epoch in range(num_epochs):
     for metric_name, metric in metrics.items():
       results[metric_name] = metric.result()
 
-    pbar.update(step, values=results.items(), finalize=False)
-    step += 1
+    if global_steps % log_steps == 0:
+        timestamp = time.time()
+        elapsed_time = timestamp - start_time
+        examples_per_second = \
+            (batch_size * len(DEVICES) * log_steps) / elapsed_time
+        print("global_step: %d images_per_sec: %.1f" % (global_steps,
+                                                        examples_per_second))
+        start_time = timestamp
+
   pbar.update(step, values=results.items(), finalize=True)
 
   for metric in eval_metrics.values():
