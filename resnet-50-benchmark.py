@@ -773,26 +773,24 @@ for epoch in range(num_epochs):
         start_time = timestamp
     num_batches += 1
 
-    train_loss = total_loss / num_batches
+  train_loss = total_loss / num_batches
 
     # on_epoch_end
-    epoch_run_time = time.time() - epoch_start
-    print("epoch: %d time_taken: %.1f" % (epoch, epoch_run_time))
+  epoch_run_time = time.time() - epoch_start
+  print("epoch: %d time_taken: %.1f" % (epoch, epoch_run_time))
 
-    pbar.update(step, values=results.items(), finalize=False)
-    step += 1
-    val_loss.reset_states()
-    val_top1.reset_states()
-    val_top5.reset_states()
-    for _ in range(nstep_per_valid):
-        y = next(valid_iter)
-        images, labels = y
-        images, labels = pack_dtensor_inputs(
+  val_loss.reset_states()
+  val_top1.reset_states()
+  val_top5.reset_states()
+  for _ in range(nstep_per_valid):
+      y = next(valid_iter)
+      images, labels = y
+      images, labels = pack_dtensor_inputs(
             images, labels, image_layout, label_layout)
-        eval_step(model, images, labels)
+      eval_step(model, images, labels)
 
-    output_str = ("loss: {} - top1: {} - top5: {} - val_loss: {} - "
+  output_str = ("loss: {} - top1: {} - top5: {} - val_loss: {} - "
                   "val_top1: {} - val_top5: {}")
-    print(output_str.format(train_loss, train_top1.result(),
+  print(output_str.format(train_loss, train_top1.result(),
                             train_top5.result(), val_loss.result(),
                             val_top1.result(), val_top5.result()))
