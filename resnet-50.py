@@ -582,6 +582,8 @@ def parse_cmdline(init_vals):
                  protobufs). Files should be named 'train-*' and
                  'validation-*'.""")
 
+  FLAGS, unknown_args = p.parse_known_args()
+  
   vals = init_vals
   vals['data_dir'] = FLAGS.data_dir
 
