@@ -793,8 +793,8 @@ for epoch in range(num_epochs):
           images, labels, image_layout, label_layout)
       results.update(eval_step(model, images, labels, eval_metrics))
 
-  for metric_name, metric in eval_metrics.items():
-      results[metric_name] = metric.result()
-  output_str = ("loss: {} - top1: {} - top5: {} ")
-  print(output_str.format(train_loss, train_top1.result(),
-                            train_top5.result()))
+  #for metric_name, metric in eval_metrics.items():
+  #    results[metric_name] = metric.result()
+  #output_str = ("loss: {} - top1: {} - top5: {} ")
+  #print(output_str.format(train_loss, train_top1.result(),
+  #                          train_top5.result()))
