@@ -709,8 +709,10 @@ val_top5 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=5,
 def train_step(model, x, y, optimizer):
   with tf.GradientTape() as tape:
     logits = model(x, training=True)
-    loss = loss_func(y, logits)
-    loss += tf.reduce_sum(model.losses)
+    #loss = loss_func(y, logits)
+    #loss += tf.reduce_sum(model.losses)
+    loss = tf.reduce_sum(tf.keras.losses.sparse_categorical_crossentropy(
+        y, logits, from_logits=True))
     loss_copy = loss
 
   grads = tape.gradient(loss, model.trainable_variables)
