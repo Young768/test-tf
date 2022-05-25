@@ -782,6 +782,7 @@ for epoch in range(num_epochs):
   val_loss.reset_states()
   val_top1.reset_states()
   val_top5.reset_states()
+  print("debug:", nstep_per_valid)
   for _ in range(nstep_per_valid):
       y = next(valid_iter)
       images, labels = y
