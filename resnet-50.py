@@ -584,7 +584,7 @@ def image_set(filenames, batch_size, height, width, training=False,
 model = resnet50(NUM_CLASSES)
 
 
-num_epochs = 100
+
 image_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=4)
 label_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=2)
 
@@ -606,19 +606,30 @@ def parse_cmdline(init_vals):
                  help="""Path to dataset in TFRecord format (aka Example
                  protobufs). Files should be named 'train-*' and
                  'validation-*'.""")
+  p.add_argument('-i', '--num_iter', type=int,
+                 default=init_vals.get('num_iter'),
+                 required=False,
+                 help="""Number of batches or epochs to run.""")
 
   FLAGS, unknown_args = p.parse_known_args()
 
   vals = init_vals
   vals['data_dir'] = FLAGS.data_dir
+  vals['num_iter'] = FLAGS.num_iter
 
   return vals
 
 default_args = {
     'data_dir' : None,
+    'num_iter' : 300,
 }
+
+
 args = parse_cmdline(default_args)
 data_dir = args['data_dir']
+num_epochs = params['num_iter']
+nstep_per_epoch = num_epochs
+
 
 file_format = os.path.join(data_dir, '%s-*')
 train_files = sorted(tf.io.gfile.glob(file_format % 'train'))
@@ -690,7 +701,6 @@ for epoch in range(num_epochs):
   pbar = tf.keras.utils.Progbar(target=None, stateful_metrics=[])
   train_iter = iter(train_input)
   valid_iter = iter(valid_input)
-  nstep_per_epoch = 100
   for _ in range(nstep_per_epoch):
     global_steps += 1
     if global_steps == 1:
