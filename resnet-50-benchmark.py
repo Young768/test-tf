@@ -687,7 +687,7 @@ valid_input = image_set(valid_files, batch_size,
 
 
 model = resnet50(NUM_CLASSES)
-optimizer = tf.keras.dtensor.experimental.optimizers.SGD(learning_rate=0.01, mesh=mesh)
+optimizer = tf.keras.dtensor.experimental.optimizers.Adam(learning_rate=0.01, mesh=mesh)
 metrics = {'accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh=mesh)}
 eval_metrics = {'eval_accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh=mesh)}
 
