@@ -127,7 +127,7 @@ with tf.keras.dtensor.experimental.layout_map_scope(layout_map):
   f = tf.keras.layers.Conv2D(32, (3, 3), activation='relu', name='conv1')(inputs)
   x = tf.keras.layers.MaxPooling2D((2, 2), name='pool1')(f)
   x = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', name='conv2')(x)
-  x = tf.kera.layers.MaxPooling2D((2, 2), name='pool2')(x)
+  x = tf.keras.layers.MaxPooling2D((2, 2), name='pool2')(x)
   x = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', name='conv3')(x)
   x = tf.keras.layers.Flatten()(x)
   x = tf.keras.layers.Dense(64, activation='relu', name='feature')(x)
