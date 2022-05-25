@@ -734,6 +734,7 @@ def eval_step(model, x, y):
   val_loss.update_state(loss)
   val_top1.update_state(y, logits)
   val_top5.update_state(y, logits)
+  return  loss
 
 global_steps = 0
 log_steps = 10
