@@ -651,7 +651,7 @@ model = resnet50(NUM_CLASSES)
 
 num_epochs = 3
 image_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=4)
-label_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=1)
+label_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=2)
 
 dali_mode=False
 image_width=224
