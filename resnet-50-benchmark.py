@@ -7,7 +7,8 @@ from tensorflow.keras import initializers
 from tensorflow.keras import models
 import os
 import sys
-
+import time
+import datetime
 import argparse
 
 layers = tf.keras.layers
