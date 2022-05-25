@@ -29,22 +29,20 @@ mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
 
 def normalize_img(image, label):
   """Normalizes images: `uint8` -> `float32`."""
-  image = tf.reshape(image, [32, 32, 1])
-  label = to_categorical(label)
   return tf.cast(image, tf.float32) / 255., label
 
-#batch_size = 128
+batch_size = 128
 
 ds_train = ds_train.map(
     normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
 ds_train = ds_train.cache()
 ds_train = ds_train.shuffle(ds_info.splits['train'].num_examples)
-#ds_train = ds_train.batch(batch_size)
+ds_train = ds_train.batch(batch_size)
 ds_train = ds_train.prefetch(tf.data.AUTOTUNE)
 
 ds_test = ds_test.map(
     normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
-#ds_test = ds_test.batch(batch_size)
+ds_test = ds_test.batch(batch_size)
 ds_test = ds_test.cache()
 ds_test = ds_test.prefetch(tf.data.AUTOTUNE)
 
@@ -115,7 +113,7 @@ BATCH_NORM_DECAY = 0.9
 BATCH_NORM_EPSILON = 1e-5
 
 with tf.keras.dtensor.experimental.layout_map_scope(layout_map):
-  inputs = tf.keras.Input((32, 32, 3), batch_size=128)
+  inputs = tf.keras.Input((28, 28, 1), batch_size=128)
   f = tf.keras.layers.Conv2D(32, (3, 3), activation='relu', name='conv1')(inputs)
   x = tf.keras.layers.MaxPooling2D((2, 2), name='pool1')(f)
   x = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', name='conv2')(x)
