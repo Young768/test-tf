@@ -649,7 +649,7 @@ def image_set(filenames, batch_size, height, width, training=False,
 model = resnet50(NUM_CLASSES)
 
 
-num_epochs = 3
+num_epochs = 100
 image_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=4)
 label_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=2)
 
