@@ -735,7 +735,7 @@ for epoch in range(num_epochs):
                                                         examples_per_second))
         start_time = timestamp
 
-  pbar.update(step, values=results.items(), finalize=True)
+  pbar.update(global_steps, values=results.items(), finalize=True)
 
   for metric in eval_metrics.values():
     metric.reset_state()
