@@ -3,6 +3,8 @@ import tensorflow_datasets as tfds
 from tensorflow.experimental import dtensor
 from tensorflow.keras import backend
 from tensorflow.keras import regularizers
+from tensorflow.keras import initializers
+
 import argparse
 
 layers = tf.keras.layers
