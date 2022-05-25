@@ -690,7 +690,7 @@ for epoch in range(num_epochs):
   pbar = tf.keras.utils.Progbar(target=None, stateful_metrics=[])
   train_iter = iter(train_input)
   valid_iter = iter(valid_input)
-  nstep_per_epoch = 300
+  nstep_per_epoch = 100
   for _ in range(nstep_per_epoch):
     global_steps += 1
     if global_steps == 1:
