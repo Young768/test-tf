@@ -31,7 +31,7 @@ mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
 batch_size = 128
 
 
-optimizer = tf.keras.dtensor.experimental.optimizers.Adam(0.01, mesh=mesh)
+optimizer = tf.keras.dtensor.experimental.optimizers.SGD(0.01, mesh=mesh)
 metrics = {'accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh=mesh)}
 eval_metrics = {'eval_accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh=mesh)}
 
