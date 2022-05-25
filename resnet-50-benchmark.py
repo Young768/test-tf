@@ -693,10 +693,10 @@ eval_metrics = {'eval_accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh
 
 loss_func = tf.keras.losses.SparseCategoricalCrossentropy()
 
-train_top1 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=1,
-                                                              name='train_top1', mesh=mesh)
-train_top5 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=5,
-                                                              name='train_top5', mesh=mesh)
+#train_top1 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=1,
+#                                                              name='train_top1', mesh=mesh)
+#train_top5 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=5,
+#                                                              name='train_top5', mesh=mesh)
 
 val_loss = tf.keras.metrics.Mean(name='val_loss', dtype=tf.float32)
 
@@ -748,8 +748,8 @@ for epoch in range(num_epochs):
   epoch_start = time.time()
   total_loss = 0.0
   num_batches = 0
-  train_top1.reset_states()
-  train_top5.reset_states()
+  #train_top1.reset_states()
+  #train_top5.reset_states()
 
   step = 0
   results = {}
