@@ -787,6 +787,7 @@ for epoch in range(num_epochs):
       images, labels = y
       images, labels = pack_dtensor_inputs(
             images, labels, image_layout, label_layout)
+      print("debug")
       eval_step(model, images, labels)
 
   output_str = ("loss: {} - top1: {} - top5: {} - val_loss: {} - "
