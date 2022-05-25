@@ -701,6 +701,7 @@ valid_input = image_set(valid_files, batch_size,
         use_dali=dali_mode, idx_filenames=valid_idx_files)
 
 global_steps = 0
+log_steps = 10
 
 for epoch in range(num_epochs):
   print("============================")
