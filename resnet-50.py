@@ -22,14 +22,11 @@ if gpus:
 DEVICES = [f'GPU:{i}' for i in range(8)]
 mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
 
-NUM_CLASSES = 1000
-
 tf.keras.backend.experimental.enable_tf_random_generator()
 tf.keras.utils.set_random_seed(1337)
 
 mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
 batch_size = 128
-
 
 optimizer = tf.keras.dtensor.experimental.optimizers.SGD(0.01, mesh=mesh)
 metrics = {'accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh=mesh)}
@@ -40,9 +37,6 @@ layers = tf.keras.layers
 L2_WEIGHT_DECAY = 1e-4
 BATCH_NORM_DECAY = 0.9
 BATCH_NORM_EPSILON = 1e-5
-
-DEVICES = [f'GPU:{i}' for i in range(8)]
-mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
 
 
 def _gen_l2_regularizer(use_l2_regularizer=True):
@@ -577,16 +571,6 @@ def image_set(filenames, batch_size, height, width, training=False,
 
         return ds
 
-#image_format='channels_last'
-
-#backend.set_image_data_format(image_format)
-
-model = resnet50(NUM_CLASSES)
-
-
-
-image_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=4)
-label_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=2)
 
 dali_mode=False
 image_width=224
@@ -646,10 +630,19 @@ valid_input = image_set(valid_files, batch_size,
         deterministic=False, num_threads=num_preproc_threads,
         use_dali=dali_mode, idx_filenames=valid_idx_files)
 
+
+'''training loop'''
+
 global_steps = 0
 log_steps = 10
+image_format='channels_last'
 
+backend.set_image_data_format(image_format)
+NUM_CLASSES = 1000
+model = resnet50(NUM_CLASSES)
 
+image_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=4)
+label_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=2)
 
 @tf.function
 def train_step(model, x, y, optimizer, metrics):
