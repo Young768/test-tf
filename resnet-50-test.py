@@ -31,7 +31,7 @@ tf.keras.utils.set_random_seed(1337)
 batch_size = 128
 
 
-optimizer = keras.optimizers.SGD(0.01, mesh=mesh)
+optimizer = keras.optimizers.SGD(0.01)
 metrics = {'accuracy': tf.keras.metrics.SparseCategoricalAccuracy()}
 eval_metrics = {'eval_accuracy': tf.keras.metrics.SparseCategoricalAccuracy()}
 
