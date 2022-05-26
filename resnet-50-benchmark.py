@@ -20,15 +20,14 @@ if gpus:
   logical_gpus = tf.config.list_logical_devices('GPU')
   print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
 
-DEVICES = [f'GPU:{i}' for i in range(8)]
-mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
+DEVICES = [f'GPU:{i}' for i in range(1)]
+mesh = dtensor.create_mesh([("batch", 1)], devices=DEVICES)
 
 NUM_CLASSES = 1000
 
 tf.keras.backend.experimental.enable_tf_random_generator()
 tf.keras.utils.set_random_seed(1337)
 
-mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
 batch_size = 16
 
 (ds_train, ds_test), ds_info = tfds.load(
@@ -76,8 +75,6 @@ L2_WEIGHT_DECAY = 1e-4
 BATCH_NORM_DECAY = 0.9
 BATCH_NORM_EPSILON = 1e-5
 
-DEVICES = [f'GPU:{i}' for i in range(8)]
-mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
 
 
 def _gen_l2_regularizer(use_l2_regularizer=True):
