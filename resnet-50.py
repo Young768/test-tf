@@ -26,7 +26,7 @@ tf.keras.backend.experimental.enable_tf_random_generator()
 tf.keras.utils.set_random_seed(1337)
 
 mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
-batch_size = 128
+
 
 optimizer = tf.keras.dtensor.experimental.optimizers.SGD(0.01, mesh=mesh)
 metrics = {'accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh=mesh)}
@@ -594,24 +594,31 @@ def parse_cmdline(init_vals):
                  default=init_vals.get('num_iter'),
                  required=False,
                  help="""Number of batches or epochs to run.""")
+  p.add_argument('-b', '--batch_size', type=int,
+                 default=init_vals.get('batch_size'),
+                 required=False,
+                 help="""Size of each minibatch.""")
 
   FLAGS, unknown_args = p.parse_known_args()
 
   vals = init_vals
   vals['data_dir'] = FLAGS.data_dir
   vals['num_iter'] = FLAGS.num_iter
+  vals['batch_size'] = FLAGS.batch_size
 
   return vals
 
 default_args = {
     'data_dir' : None,
     'num_iter' : 300,
+    'batch_size' : 128,
 }
 
 
 args = parse_cmdline(default_args)
 data_dir = args['data_dir']
 num_epochs = args['num_iter']
+batch_size = args['batch_size']
 nstep_per_epoch = num_epochs
 
 
