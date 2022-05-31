@@ -630,7 +630,7 @@ nstep_per_epoch = num_epochs
 
 if precision == 'fp16':
     policy = tf.keras.mixed_precision.Policy('mixed_float16')
-    keras.mixed_precision.set_global_policy(policy)
+    tf.keras.mixed_precision.set_global_policy(policy)
 
 file_format = os.path.join(data_dir, '%s-*')
 train_files = sorted(tf.io.gfile.glob(file_format % 'train'))
