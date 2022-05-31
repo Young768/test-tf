@@ -711,7 +711,7 @@ for epoch in range(num_epochs):
         timestamp = time.time()
         elapsed_time = timestamp - start_time
         examples_per_second = \
-            (batch_size * len(DEVICES) * log_steps) / elapsed_time
+            (batch_size * log_steps) / elapsed_time
         print("global_step: %d images_per_sec: %.1f" % (global_steps,
                                                         examples_per_second))
         start_time = timestamp
