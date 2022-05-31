@@ -625,7 +625,7 @@ args = parse_cmdline(default_args)
 data_dir = args['data_dir']
 num_epochs = args['num_iter']
 batch_size = args['batch_size']
-precision = params['precision']
+precision = args['precision']
 nstep_per_epoch = num_epochs
 
 if precision == 'fp16':
