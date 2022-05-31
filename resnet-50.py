@@ -630,8 +630,8 @@ loss_scale = 128.0
 nstep_per_epoch = num_epochs
 
 if precision == 'fp16':
-    policy = tf.keras.mixed_precision.Policy('mixed_float16')
-    tf.keras.mixed_precision.set_global_policy(policy)
+    policy = tf.keras.dtensor.experimental.mixed_precision.Policy('mixed_float16')
+    tf.keras.dtensor.experimental.mixed_precision.set_global_policy(policy)
 
 file_format = os.path.join(data_dir, '%s-*')
 train_files = sorted(tf.io.gfile.glob(file_format % 'train'))
