@@ -626,6 +626,7 @@ data_dir = args['data_dir']
 num_epochs = args['num_iter']
 batch_size = args['batch_size']
 precision = args['precision']
+loss_scale = 128.0
 nstep_per_epoch = num_epochs
 
 if precision == 'fp16':
