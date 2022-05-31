@@ -598,6 +598,10 @@ def parse_cmdline(init_vals):
                  default=init_vals.get('batch_size'),
                  required=False,
                  help="""Size of each minibatch.""")
+  p.add_argument('--precision', choices=['fp32', 'fp16'],
+                 default=init_vals.get('precision'),
+                 required=False,
+                 help="""Select single or half precision arithmetic.""")
 
   FLAGS, unknown_args = p.parse_known_args()
 
@@ -605,6 +609,7 @@ def parse_cmdline(init_vals):
   vals['data_dir'] = FLAGS.data_dir
   vals['num_iter'] = FLAGS.num_iter
   vals['batch_size'] = FLAGS.batch_size
+  vals['precision'] = FLAGS.precision
 
   return vals
 
@@ -612,6 +617,7 @@ default_args = {
     'data_dir' : None,
     'num_iter' : 300,
     'batch_size' : 128,
+    'precision' : 'fp32',
 }
 
 
@@ -619,8 +625,12 @@ args = parse_cmdline(default_args)
 data_dir = args['data_dir']
 num_epochs = args['num_iter']
 batch_size = args['batch_size']
+precision = params['precision']
 nstep_per_epoch = num_epochs
 
+if precision == 'fp16':
+    policy = keras.mixed_precision.Policy('mixed_float16')
+    keras.mixed_precision.set_global_policy(policy)
 
 file_format = os.path.join(data_dir, '%s-*')
 train_files = sorted(tf.io.gfile.glob(file_format % 'train'))
@@ -659,14 +669,25 @@ def train_step(model, x, y, optimizer, metrics):
     # global loss (scalar).
     loss = tf.reduce_sum(tf.keras.losses.sparse_categorical_crossentropy(
         y, logits, from_logits=True))
+    loss_copy = loss
+    if precision == 'fp16':
+        loss = loss * tf.cast(loss_scale, loss.dtype)
 
-  gradients = tape.gradient(loss, model.trainable_variables)
-  optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+  old_grads = tape.gradient(loss, model.trainable_variables)
+
+  if precision == 'fp16':
+      loss_scale_reciprocal = 1. / loss_scale
+      grads = [g * tf.cast(loss_scale_reciprocal, g.dtype) if g is not
+                                                              None else None for g in old_grads]
+  else:
+      grads = old_grads
+
+  optimizer.apply_gradients(zip(grads, model.trainable_variables))
 
   for metric in metrics.values():
     metric.update_state(y_true=y, y_pred=logits)
 
-  loss_per_sample = loss / len(x)
+  loss_per_sample = loss_copy / len(x)
   results = {'loss': loss_per_sample}
   return results
 
