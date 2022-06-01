@@ -12,25 +12,26 @@ import argparse
 
 layers = tf.keras.layers
 
-gpus = tf.config.list_physical_devices('GPU')
-if gpus:
-  for gpu in gpus:
-    tf.config.experimental.set_memory_growth(gpu, True)
-  logical_gpus = tf.config.list_logical_devices('GPU')
-  print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+rank=int(os.environ['DTENSOR_CLIENT_ID'])
+size=int(os.environ['DTENSOR_NUM_CLIENTS'])
 
-DEVICES = [f'GPU:{i}' for i in range(8)]
-mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
+gpus = tf.config.experimental.list_physical_devices('GPU')
+for gpu in gpus:
+    tf.config.experimental.set_memory_growth(gpu, True)
+if gpus:
+    tf.config.experimental.set_visible_devices(gpus[rank], 'GPU')
+visible_devices = tf.config.experimental.get_visible_devices()
+
+tf.experimental.dtensor.initialize_multi_client(enable_coordination_service=True)
+mesh_1d = dtensor.create_distributed_mesh([('x', size)], device_type='GPU')
 
 tf.keras.backend.experimental.enable_tf_random_generator()
 tf.keras.utils.set_random_seed(1337)
 
-mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
 
-
-optimizer = tf.keras.dtensor.experimental.optimizers.SGD(0.01, mesh=mesh)
-metrics = {'accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh=mesh)}
-eval_metrics = {'eval_accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh=mesh)}
+optimizer = tf.keras.dtensor.experimental.optimizers.SGD(0.01, mesh=mesh_1d)
+metrics = {'accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh=mesh_1d)}
+eval_metrics = {'eval_accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh=mesh_1d)}
 
 layers = tf.keras.layers
 
@@ -237,11 +238,11 @@ def resnet50(num_classes,
         A Keras model instance.
     """
 
-    unsharded_layout_4d = dtensor.Layout.replicated(mesh, 4)
-    unsharded_layout_2d = dtensor.Layout.replicated(mesh, 2)
-    unsharded_layout_1d = dtensor.Layout.replicated(mesh, 1)
+    unsharded_layout_4d = dtensor.Layout.replicated(mesh_1d, 4)
+    unsharded_layout_2d = dtensor.Layout.replicated(mesh_1d, 2)
+    unsharded_layout_1d = dtensor.Layout.replicated(mesh_1d, 1)
 
-    layout_map = tf.keras.dtensor.experimental.LayoutMap(mesh=mesh)
+    layout_map = tf.keras.dtensor.experimental.LayoutMap(mesh=mesh_1d)
 
     layout_map['conv1.*kernel'] = unsharded_layout_4d
     layout_map['res.*kernel'] = unsharded_layout_4d
@@ -659,8 +660,8 @@ backend.set_image_data_format(image_format)
 NUM_CLASSES = 1000
 model = resnet50(NUM_CLASSES)
 
-image_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=4)
-label_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=2)
+image_layout = dtensor.Layout.batch_sharded(mesh_1d, 'batch', rank=4)
+label_layout = dtensor.Layout.batch_sharded(mesh_1d, 'batch', rank=2)
 
 @tf.function
 def train_step(model, x, y, optimizer, metrics):
