@@ -25,6 +25,8 @@ mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
 tf.keras.backend.experimental.enable_tf_random_generator()
 tf.keras.utils.set_random_seed(1337)
 
+mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
+
 
 optimizer = tf.keras.dtensor.experimental.optimizers.SGD(0.01, mesh=mesh)
 metrics = {'accuracy': tf.keras.metrics.SparseCategoricalAccuracy(mesh=mesh)}
@@ -706,7 +708,6 @@ def eval_step(model, x, y, metrics):
 
 def pack_dtensor_inputs(images, labels, image_layout, label_layout):
   num_local_devices = image_layout.mesh.num_local_devices()
-  print("batch sharded into:", num_local_devices)
   images = tf.split(images, num_local_devices)
   labels = tf.split(labels, num_local_devices)
   images = dtensor.pack(images, image_layout)
