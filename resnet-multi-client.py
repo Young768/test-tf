@@ -24,7 +24,7 @@ if gpus:
 visible_devices = tf.config.experimental.get_visible_devices()
 
 tf.experimental.dtensor.initialize_multi_client(enable_coordination_service=True)
-mesh_1d = dtensor.create_distributed_mesh([('x', size)], device_type='GPU')
+mesh_1d = dtensor.create_distributed_mesh([('batch', size)], device_type='GPU')
 
 tf.keras.backend.experimental.enable_tf_random_generator()
 tf.keras.utils.set_random_seed(1337)
