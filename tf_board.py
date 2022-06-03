@@ -35,6 +35,24 @@ train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy('train_accuracy')
 test_loss = tf.keras.metrics.Mean('test_loss', dtype=tf.float32)
 test_accuracy = tf.keras.metrics.SparseCategoricalAccuracy('test_accuracy')
 
+def train_step(model, optimizer, x_train, y_train):
+  with tf.GradientTape() as tape:
+    predictions = model(x_train, training=True)
+    loss = loss_object(y_train, predictions)
+  grads = tape.gradient(loss, model.trainable_variables)
+  optimizer.apply_gradients(zip(grads, model.trainable_variables))
+
+  train_loss(loss)
+  train_accuracy(y_train, predictions)
+
+def test_step(model, x_test, y_test):
+  predictions = model(x_test)
+  loss = loss_object(y_test, predictions)
+
+  test_loss(loss)
+  test_accuracy(y_test, predictions)
+
+
 current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 train_log_dir = 'logs/gradient_tape/' + current_time + '/train'
 test_log_dir = 'logs/gradient_tape/' + current_time + '/test'
