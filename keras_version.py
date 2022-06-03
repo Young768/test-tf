@@ -142,7 +142,7 @@ for epoch in range(num_epochs):
   step = 0
   results = {}
   pbar = tf.keras.utils.Progbar(target=None, stateful_metrics=[])
-  if step == 1:
+  if step == 0:
       tf.profiler.experimental.start('/opt/log')
   for input in ds_train:
     images, labels = input[0], input[1]
