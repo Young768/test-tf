@@ -10,6 +10,10 @@ import sys
 import time
 import argparse
 
+rank=int(os.environ['DTENSOR_CLIENT_ID'])
+size=int(os.environ['DTENSOR_NUM_CLIENTS'])
+print("rank:", rank, " size:", size)
+
 layers = tf.keras.layers
 
 gpus = tf.config.list_physical_devices('GPU')
@@ -657,6 +661,7 @@ def eval_step(model, x, y, metrics):
   results = {'eval_loss': loss_per_sample}
   return results
 
+log = True
 
 for epoch in range(num_epochs):
   print("============================")
@@ -668,6 +673,8 @@ for epoch in range(num_epochs):
   train_iter = iter(train_input)
   valid_iter = iter(valid_input)
   for _ in range(nstep_per_epoch):
+    if log_ and rank ==0 and global_steps == 700:
+        tf.profiler.experimental.start('/opt/log')
     global_steps += 1
     if global_steps == 1:
         start_time = time.time()
@@ -685,7 +692,8 @@ for epoch in range(num_epochs):
         print("global_step: %d images_per_sec: %.1f" % (global_steps,
                                                         examples_per_second))
         start_time = timestamp
-
+    if log_ and rank ==0 and global_steps == 800:
+        tf.profiler.experimental.stop()
   pbar.update(global_steps, values=results.items(), finalize=True)
 
   for metric in eval_metrics.values():
