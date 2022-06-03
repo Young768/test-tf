@@ -129,7 +129,7 @@ with tf.keras.dtensor.experimental.layout_map_scope(layout_map):
 
 
 
-num_epochs = 3
+num_epochs = 1000
 image_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=4)
 label_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=1)
 
@@ -142,8 +142,7 @@ for epoch in range(num_epochs):
   step = 0
   results = {}
   pbar = tf.keras.utils.Progbar(target=None, stateful_metrics=[])
-  if step == 0:
-      tf.profiler.experimental.start('/opt/log')
+
   for input in ds_train:
     images, labels = input[0], input[1]
     images, labels = pack_dtensor_inputs(
@@ -155,8 +154,6 @@ for epoch in range(num_epochs):
 
     pbar.update(step, values=results.items(), finalize=False)
     step += 1
-    if step == 5:
-        tf.profiler.experimental.stop()
   pbar.update(step, values=results.items(), finalize=True)
 
   for metric in eval_metrics.values():
