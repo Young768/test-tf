@@ -133,6 +133,9 @@ num_epochs = 3
 image_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=4)
 label_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=1)
 
+tf.profiler.experimental.start('/opt/log')
+
+
 for epoch in range(num_epochs):
   print("============================")
   print("Epoch: ", epoch)
@@ -142,16 +145,17 @@ for epoch in range(num_epochs):
   results = {}
   pbar = tf.keras.utils.Progbar(target=None, stateful_metrics=[])
   for input in ds_train:
-    images, labels = input[0], input[1]
-    images, labels = pack_dtensor_inputs(
-        images, labels, image_layout, label_layout)
-    #print(images.layout, labels.layout)
-    results.update(train_step(model, images, labels, optimizer, metrics))
-    for metric_name, metric in metrics.items():
-      results[metric_name] = metric.result()
+    with tf.profiler.experimental.Trace("Train", step_num=step, _r=1):
+        images, labels = input[0], input[1]
+        images, labels = pack_dtensor_inputs(
+            images, labels, image_layout, label_layout)
+        #print(images.layout, labels.layout)
+        results.update(train_step(model, images, labels, optimizer, metrics))
+        for metric_name, metric in metrics.items():
+          results[metric_name] = metric.result()
 
-    pbar.update(step, values=results.items(), finalize=False)
-    step += 1
+        pbar.update(step, values=results.items(), finalize=False)
+        step += 1
   pbar.update(step, values=results.items(), finalize=True)
 
   for metric in eval_metrics.values():
@@ -167,3 +171,6 @@ for epoch in range(num_epochs):
 
   for metric_name, metric in results.items():
     print(f"{metric_name}: {metric.numpy()}")
+
+tf.profiler.experimental.stop()
+
