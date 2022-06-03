@@ -716,6 +716,8 @@ def pack_dtensor_inputs(images, labels, image_layout, label_layout):
   labels = dtensor.pack(labels, label_layout)
   return  images, labels
 
+log_ = True
+
 for epoch in range(num_epochs):
   print("============================")
   print("Epoch: ", epoch)
@@ -727,6 +729,8 @@ for epoch in range(num_epochs):
   valid_iter = iter(valid_input)
   for _ in range(nstep_per_epoch):
     global_steps += 1
+    if log_ and global_steps == 650:
+        tf.profiler.experimental.start('/opt/log')
     if global_steps == 1:
         start_time = time.time()
     x = next(train_iter)
@@ -746,6 +750,9 @@ for epoch in range(num_epochs):
         print("global_step: %d images_per_sec: %.1f" % (global_steps,
                                                         examples_per_second))
         start_time = timestamp
+
+    if log_ and global_steps == 661:
+        tf.profiler.experimental.stop()
 
   pbar.update(global_steps, values=results.items(), finalize=True)
 
