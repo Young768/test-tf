@@ -745,8 +745,8 @@ for epoch in range(num_epochs):
   val_loss.reset_states()
 
   y = next(valid_iter)
-  v_images, v_labels = y
-  v_images, v_labels = pack_dtensor_inputs(
-      v_images, v_labels, image_layout, label_layout)
-  v_x = (v_images, v_labels)
-  valid_step(v_x)
+  y_images, y_labels = y
+  y_images, y_labels = pack_dtensor_inputs(
+      y_images, y_labels, image_layout, label_layout)
+  y_x = (y_images, y_labels)
+  valid_step(y_x)
