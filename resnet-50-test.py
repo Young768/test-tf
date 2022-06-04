@@ -661,7 +661,7 @@ def eval_step(model, x, y, metrics):
   results = {'eval_loss': loss_per_sample}
   return results
 
-log = True
+log_ = True
 
 for epoch in range(num_epochs):
   print("============================")
