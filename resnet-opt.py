@@ -682,18 +682,8 @@ def train_step(inputs):
     gradients = tape.gradient(loss, model.trainable_variables)
     opt.apply_gradients(zip(gradients, model.trainable_variables))
 
-    old_grads = tape.gradient(loss, model.trainable_variables)
-
-    grads = old_grads
-
-    opt.apply_gradients(zip(grads, model.trainable_variables))
-
     train_top1.update_state(labels, predictions)
     train_top5.update_state(labels, predictions)
-
-    if hvd.size() > 1 and first_batch:
-        hvd.broadcast_variables(model.variables, root_rank=0)
-        hvd.broadcast_variables(opt.variables(), root_rank=0)
 
     return loss_copy
 
