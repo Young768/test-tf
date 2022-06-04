@@ -28,15 +28,15 @@ tf.keras.utils.set_random_seed(1337)
 
 opt = tf.keras.dtensor.experimental.optimizers.SGD(0.01, mesh=mesh)
 loss_func = tf.keras.losses.SparseCategoricalCrossentropy()
-train_top1 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=1,
-                                                              name='train_top1')
-train_top5 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=5,
-                                                              name='train_top5')
+#train_top1 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=1,
+#                                                              name='train_top1')
+#train_top5 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=5,
+#                                                              name='train_top5')
 val_loss = tf.keras.metrics.Mean(name='val_loss', dtype=tf.float32)
-val_top1 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=1,
-                                                            name='val_top1')
-val_top5 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=5,
-                                                            name='val_top5')
+#val_top1 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=1,
+#                                                            name='val_top1')
+#val_top5 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=5,
+#                                                            name='val_top5')
 
 layers = tf.keras.layers
 
@@ -682,8 +682,8 @@ def train_step(inputs):
     gradients = tape.gradient(loss, model.trainable_variables)
     opt.apply_gradients(zip(gradients, model.trainable_variables))
 
-    train_top1.update_state(labels, predictions)
-    train_top5.update_state(labels, predictions)
+    #train_top1.update_state(labels, predictions)
+    #train_top5.update_state(labels, predictions)
 
     return loss_copy
 
@@ -695,8 +695,8 @@ def valid_step(inputs):
     loss = loss_func(labels, predictions)
 
     val_loss.update_state(loss)
-    val_top1.update_state(labels, predictions)
-    val_top5.update_state(labels, predictions)
+    #val_top1.update_state(labels, predictions)
+    #val_top5.update_state(labels, predictions)
 
 def pack_dtensor_inputs(images, labels, image_layout, label_layout):
   num_local_devices = image_layout.mesh.num_local_devices()
@@ -712,8 +712,8 @@ for epoch in range(num_epochs):
   print("Epoch: ", epoch)
   total_loss = 0.0
   num_batches = 0
-  train_top1.reset_states()
-  train_top5.reset_states()
+  #train_top1.reset_states()
+  #train_top5.reset_states()
   train_iter = iter(train_input)
   valid_iter = iter(valid_input)
   for _ in range(nstep_per_epoch):
@@ -742,8 +742,8 @@ for epoch in range(num_epochs):
   epoch_run_time = time.time() - epoch_start
   print("epoch: %d time_taken: %.1f" % (epoch, epoch_run_time))
   val_loss.reset_states()
-  val_top1.reset_states()
-  val_top5.reset_states()
+  #val_top1.reset_states()
+  #val_top5.reset_states()
 
   y = next(valid_iter)
   v_images, v_labels = y
@@ -751,8 +751,8 @@ for epoch in range(num_epochs):
       v_images, v_labels, image_layout, label_layout)
   v_x = (v_images, v_labels)
   valid_step(x)
-  output_str = ("loss: {} - top1: {} - top5: {} - val_loss: {} - "
-                "val_top1: {} - val_top5: {}")
-  print(output_str.format(train_loss, train_top1.result(),
-                          train_top5.result(), val_loss.result(),
-                          val_top1.result(), val_top5.result()))
+  #output_str = ("loss: {} - top1: {} - top5: {} - val_loss: {} - "
+  #              "val_top1: {} - val_top5: {}")
+  #print(output_str.format(train_loss, train_top1.result(),
+  #                        train_top5.result(), val_loss.result(),
+  #                        val_top1.result(), val_top5.result()))
