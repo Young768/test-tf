@@ -692,8 +692,9 @@ def train_step(inputs):
 def valid_step(inputs):
     images, labels = inputs
     predictions = model(images, training=False)
+    #loss_func = tf.keras.losses.SparseCategoricalCrossentropy()
     loss = tf.reduce_sum(tf.keras.losses.sparse_categorical_crossentropy(
-        labels, predictions, from_logits=True))
+        labels, predictions))
 
     loss_per_sample = loss / len(images)
     results = {'eval_loss': loss_per_sample}
