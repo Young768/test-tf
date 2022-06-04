@@ -680,7 +680,7 @@ def train_step(inputs):
         loss_copy = loss
 
     gradients = tape.gradient(loss, model.trainable_variables)
-    optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+    opt.apply_gradients(zip(gradients, model.trainable_variables))
 
     old_grads = tape.gradient(loss, model.trainable_variables)
 
