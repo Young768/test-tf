@@ -694,7 +694,7 @@ def valid_step(inputs):
     predictions = model(images, training=False)
     loss = loss_func(labels, predictions)
 
-    val_loss.update_state(loss)
+    #val_loss.update_state(loss)
     #val_top1.update_state(labels, predictions)
     #val_top5.update_state(labels, predictions)
 
