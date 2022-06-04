@@ -27,7 +27,7 @@ tf.keras.utils.set_random_seed(1337)
 
 
 opt = tf.keras.dtensor.experimental.optimizers.SGD(0.01, mesh=mesh)
-loss_func = keras.losses.SparseCategoricalCrossentropy()
+loss_func = tf.keras.losses.SparseCategoricalCrossentropy()
 train_top1 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=1,
                                                               name='train_top1')
 train_top5 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=5,
