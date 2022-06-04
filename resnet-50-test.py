@@ -16,12 +16,13 @@ print("rank:", rank, " size:", size)
 
 layers = tf.keras.layers
 
-gpus = tf.config.list_physical_devices('GPU')
-if gpus:
-  for gpu in gpus:
+gpus = tf.config.experimental.list_physical_devices('GPU')
+for gpu in gpus:
     tf.config.experimental.set_memory_growth(gpu, True)
-  logical_gpus = tf.config.list_logical_devices('GPU')
-  print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+if gpus:
+    tf.config.experimental.set_visible_devices(gpus[rank], 'GPU')
+visible_devices = tf.config.experimental.get_visible_devices()
+
 
 #DEVICES = [f'GPU:{i}' for i in range(8)]
 #mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
