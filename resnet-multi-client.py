@@ -729,7 +729,7 @@ for epoch in range(num_epochs):
   valid_iter = iter(valid_input)
   for _ in range(nstep_per_epoch):
     global_steps += 1
-    if log_ and rank ==0 and global_steps == 100:
+    if log_ and rank ==0 and global_steps == 0:
         tf.profiler.experimental.start('/opt/log')
     if global_steps == 1:
         start_time = time.time()
@@ -751,7 +751,7 @@ for epoch in range(num_epochs):
                                                         examples_per_second))
         start_time = timestamp
 
-    if log_ and rank ==0 and global_steps == 300:
+    if log_ and rank ==0 and global_steps == 100:
         tf.profiler.experimental.stop()
 
   pbar.update(global_steps, values=results.items(), finalize=True)
