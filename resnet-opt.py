@@ -695,7 +695,9 @@ def valid_step(inputs):
     #loss_func = tf.keras.losses.SparseCategoricalCrossentropy()
     loss = tf.reduce_sum(tf.keras.losses.sparse_categorical_crossentropy(
         labels, predictions))
-
+    val_loss.update_state(loss)
+    val_top1.update_state(labels, predictions)
+    val_top5.update_state(labels, predictions)
     loss_per_sample = loss / len(images)
     results = {'eval_loss': loss_per_sample}
 
@@ -746,6 +748,8 @@ for epoch in range(num_epochs):
   epoch_run_time = time.time() - epoch_start
   print("epoch: %d time_taken: %.1f" % (epoch, epoch_run_time))
   val_loss.reset_states()
+  val_top1.reset_states()
+  val_top5.reset_states()
 
   y = next(valid_iter)
   y_images, y_labels = y
