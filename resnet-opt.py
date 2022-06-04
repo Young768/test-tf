@@ -692,11 +692,13 @@ def train_step(inputs):
 def valid_step(inputs):
     images, labels = inputs
     predictions = model(images, training=False)
-    loss = loss_func(labels, predictions)
+    loss = tf.reduce_sum(tf.keras.losses.sparse_categorical_crossentropy(
+        labels, predictions, from_logits=True))
 
-    #val_loss.update_state(loss)
-    #val_top1.update_state(labels, predictions)
-    #val_top5.update_state(labels, predictions)
+    loss_per_sample = loss / len(images)
+    results = {'eval_loss': loss_per_sample}
+
+    return results
 
 def pack_dtensor_inputs(images, labels, image_layout, label_layout):
   num_local_devices = image_layout.mesh.num_local_devices()
