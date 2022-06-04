@@ -757,3 +757,9 @@ for epoch in range(num_epochs):
       y_images, y_labels, image_layout, label_layout)
   y_x = (y_images, y_labels)
   valid_step(y_x)
+
+  output_str = ("loss: {} - top1: {} - top5: {} - val_loss: {} - "
+                "val_top1: {} - val_top5: {}")
+  print(output_str.format(train_loss, train_top1.result(),
+                          train_top5.result(), val_loss.result(),
+                          val_top1.result(), val_top5.result()))
