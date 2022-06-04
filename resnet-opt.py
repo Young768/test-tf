@@ -714,6 +714,7 @@ for epoch in range(num_epochs):
   num_batches = 0
   #train_top1.reset_states()
   #train_top5.reset_states()
+  epoch_start = time.time()
   train_iter = iter(train_input)
   valid_iter = iter(valid_input)
   for _ in range(nstep_per_epoch):
