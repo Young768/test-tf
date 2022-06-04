@@ -28,15 +28,15 @@ tf.keras.utils.set_random_seed(1337)
 
 opt = tf.keras.dtensor.experimental.optimizers.SGD(0.01, mesh=mesh)
 loss_func = tf.keras.losses.SparseCategoricalCrossentropy()
-#train_top1 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=1,
-#                                                              name='train_top1')
-#train_top5 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=5,
-#                                                              name='train_top5')
+train_top1 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=1,
+                                                              name='train_top1')
+train_top5 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=5,
+                                                              name='train_top5')
 val_loss = tf.keras.metrics.Mean(name='val_loss', dtype=tf.float32)
-#val_top1 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=1,
-#                                                            name='val_top1')
-#val_top5 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=5,
-#                                                            name='val_top5')
+val_top1 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=1,
+                                                            name='val_top1')
+val_top5 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=5,
+                                                            name='val_top5')
 
 layers = tf.keras.layers
 
@@ -682,8 +682,8 @@ def train_step(inputs):
     gradients = tape.gradient(loss, model.trainable_variables)
     opt.apply_gradients(zip(gradients, model.trainable_variables))
 
-    #train_top1.update_state(labels, predictions)
-    #train_top5.update_state(labels, predictions)
+    train_top1.update_state(labels, predictions)
+    train_top5.update_state(labels, predictions)
 
     return loss_copy
 
