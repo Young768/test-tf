@@ -743,17 +743,10 @@ for epoch in range(num_epochs):
   epoch_run_time = time.time() - epoch_start
   print("epoch: %d time_taken: %.1f" % (epoch, epoch_run_time))
   val_loss.reset_states()
-  #val_top1.reset_states()
-  #val_top5.reset_states()
 
   y = next(valid_iter)
   v_images, v_labels = y
   v_images, v_labels = pack_dtensor_inputs(
       v_images, v_labels, image_layout, label_layout)
   v_x = (v_images, v_labels)
-  valid_step(x)
-  #output_str = ("loss: {} - top1: {} - top5: {} - val_loss: {} - "
-  #              "val_top1: {} - val_top5: {}")
-  #print(output_str.format(train_loss, train_top1.result(),
-  #                        train_top5.result(), val_loss.result(),
-  #                        val_top1.result(), val_top5.result()))
+  valid_step(v_x)
