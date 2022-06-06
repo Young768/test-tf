@@ -706,6 +706,7 @@ def pack_dtensor_inputs(images, labels, image_layout, label_layout):
   labels = dtensor.pack(labels, label_layout)
   return  images, labels
 
+train_iter = iter(train_input)
 x = next(train_iter)
 images, labels = x
 images, labels = pack_dtensor_inputs(
@@ -720,7 +721,7 @@ for epoch in range(num_epochs):
   #train_top1.reset_states()
   #train_top5.reset_states()
   epoch_start = time.time()
-  train_iter = iter(train_input)
+  #train_iter = iter(train_input)
   valid_iter = iter(valid_input)
   for _ in range(nstep_per_epoch):
     global_steps += 1
