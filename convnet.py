@@ -118,14 +118,14 @@ with tf.keras.dtensor.experimental.layout_map_scope(layout_map):
   x = tf.keras.layers.MaxPooling2D((2, 2), name='pool1')(f)
   x = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', name='conv2')(x)
   x = tf.keras.layers.MaxPooling2D((2, 2), name='pool2')(x)
-  
+
   x = tf.keras.layers.Conv2D(64, (3, 3), padding="Same", activation='relu', name='conv4')(x)
   x = tf.keras.layers.MaxPooling2D((2, 2), name='pool4')(x)
   x = tf.keras.layers.Conv2D(64, (3, 3), padding="Same", activation='relu', name='conv5')(x)
   x = tf.keras.layers.MaxPooling2D((2, 2), name='pool5')(x)
   x = tf.keras.layers.Conv2D(64, (3, 3), padding="Same", activation='relu', name='conv6')(x)
   x = tf.keras.layers.MaxPooling2D((2, 2), name='pool6')(x)
-  x = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', name='conv7')(x)
+  x = tf.keras.layers.Conv2D(64, (3, 3), padding="Same", activation='relu', name='conv7')(x)
   x = tf.keras.layers.MaxPooling2D((2, 2), name='pool7')(x)
   x = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', name='conv8')(x)
   x = tf.keras.layers.MaxPooling2D((2, 2), name='pool8')(x)
