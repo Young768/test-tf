@@ -706,12 +706,40 @@ def pack_dtensor_inputs(images, labels, image_layout, label_layout):
   labels = dtensor.pack(labels, label_layout)
   return  images, labels
 
-train_iter = iter(train_input)
-x = next(train_iter)
-images, labels = x
-images, labels = pack_dtensor_inputs(
-        images, labels, image_layout, label_layout)
-t_x = (images, labels)
+def repack_local_tensor(x, layout):
+  """Repacks a local Tensor-like to a DTensor with layout.
+
+  This function assumes a single-client application.
+  """
+  x = tf.convert_to_tensor(x)
+  sharded_dims = []
+
+  # For every sharded dimension, use tf.split to split the along the dimension.
+  # The result is a nested list of split-tensors in queue[0].
+  queue = [x]
+  for axis, dim in enumerate(layout.sharding_specs):
+    if dim == dtensor.UNSHARDED:
+      continue
+    num_splits = layout.shape[axis]
+    queue = tf.nest.map_structure(lambda x: tf.split(x, num_splits, axis=axis), queue)
+    sharded_dims.append(dim)
+
+  # Now we can build the list of component tensors by looking up the location in
+  # the nested list of split-tensors created in queue[0].
+  components = []
+  for locations in layout.mesh.local_device_locations():
+    t = queue[0]
+    for dim in sharded_dims:
+      split_index = locations[dim]  # Only valid on single-client mesh.
+      t = t[split_index]
+    components.append(t)
+
+  return dtensor.pack(components, layout)
+
+def repack_batch(x, y, x_layout, y_layout):
+  x = repack_local_tensor(x, x_layout)
+  y = repack_local_tensor(y, y_layout)
+  return x, y
 
 for epoch in range(num_epochs):
   print("============================")
@@ -727,11 +755,11 @@ for epoch in range(num_epochs):
     global_steps += 1
     if global_steps == 1:
         start_time = time.time()
-    #x = next(train_iter)
-    #images, labels = x
-    #images, labels = pack_dtensor_inputs(
-    #    images, labels, image_layout, label_layout)
-    #t_x = (images, labels)
+    x = next(train_iter)
+    images, labels = x
+    images, labels = repack_batch(
+        images, labels, image_layout, label_layout)
+    t_x = (images, labels)
     total_loss += train_step(t_x)
 
     if global_steps % log_steps == 0:
@@ -751,7 +779,7 @@ for epoch in range(num_epochs):
 
   y = next(valid_iter)
   y_images, y_labels = y
-  y_images, y_labels = pack_dtensor_inputs(
+  y_images, y_labels = repack_batch(
       y_images, y_labels, image_layout, label_layout)
   y_x = (y_images, y_labels)
   valid_step(y_x)
