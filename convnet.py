@@ -140,7 +140,7 @@ layout_map['test.*moving_mean'] = unsharded_layout_1d
 bn_axis = 1
 BATCH_NORM_DECAY = 0.9
 BATCH_NORM_EPSILON = 1e-5
-total_ = 500
+total_ = 200
 
 with tf.keras.dtensor.experimental.layout_map_scope(layout_map):
   inputs = tf.keras.Input((28, 28, 1))
@@ -163,7 +163,7 @@ with tf.keras.dtensor.experimental.layout_map_scope(layout_map):
 
 
 
-num_epochs = 100
+num_epochs = 300
 num_steps = num_epochs
 image_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=4)
 label_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=1)
