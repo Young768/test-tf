@@ -111,7 +111,7 @@ layout_map['test.*moving_mean'] = unsharded_layout_1d
 bn_axis = 1
 BATCH_NORM_DECAY = 0.9
 BATCH_NORM_EPSILON = 1e-5
-total_ = 2000
+total_ = 100
 
 with tf.keras.dtensor.experimental.layout_map_scope(layout_map):
   inputs = tf.keras.Input((28, 28, 1))
