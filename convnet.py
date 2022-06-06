@@ -177,8 +177,8 @@ for epoch in range(num_epochs):
   results = {}
   pbar = tf.keras.utils.Progbar(target=None, stateful_metrics=[])
   data = iter(ds_train)
+  input = next(data)
   for _ in range(num_steps):
-    input = next(data)
     images, labels = input[0], input[1]
     images, labels = pack_dtensor_inputs(
         images, labels, image_layout, label_layout)
