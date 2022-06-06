@@ -47,38 +47,67 @@ ds_test = ds_test.cache()
 ds_test = ds_test.prefetch(tf.data.AUTOTUNE)
 
 
-@tf.function
-def train_step(model, x, y, optimizer, metrics):
-  with tf.GradientTape() as tape:
-    logits = model(x, training=True)
-    # tf.reduce_sum sums the batch sharded per-example loss to a replicated
+#@tf.function
+#def train_step(model, x, y, optimizer, metrics):
+#  with tf.GradientTape() as tape:
+#    logits = model(x, training=True)
+#    # tf.reduce_sum sums the batch sharded per-example loss to a replicated
     # global loss (scalar).
-    loss = tf.reduce_sum(tf.keras.losses.sparse_categorical_crossentropy(
-        y, logits, from_logits=True))
+#    loss = tf.reduce_sum(tf.keras.losses.sparse_categorical_crossentropy(
+#        y, logits, from_logits=True))
 
-  gradients = tape.gradient(loss, model.trainable_variables)
-  optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+#  gradients = tape.gradient(loss, model.trainable_variables)
+#  optimizer.apply_gradients(zip(gradients, model.trainable_variables))
 
-  for metric in metrics.values():
-    metric.update_state(y_true=y, y_pred=logits)
+#  for metric in metrics.values():
+#    metric.update_state(y_true=y, y_pred=logits)
 
-  loss_per_sample = loss / len(x)
-  results = {'loss': loss_per_sample}
-  return results
+#  loss_per_sample = loss / len(x)
+#  results = {'loss': loss_per_sample}
+#  return results
+
+
+#@tf.function
+#def eval_step(model, x, y, metrics):
+#  logits = model(x, training=False)
+#  loss = tf.reduce_sum(tf.keras.losses.sparse_categorical_crossentropy(
+#        y, logits, from_logits=True))
+
+#  for metric in metrics.values():
+#    metric.update_state(y_true=y, y_pred=logits)
+
+#  loss_per_sample = loss / len(x)
+#  results = {'eval_loss': loss_per_sample}
+#  return results
+
+@tf.function
+def train_step(inputs):
+    images, labels = inputs
+
+    with tf.GradientTape() as tape:
+        predictions = model(images, training=True)
+        loss = loss_func(labels, predictions)
+        loss += tf.reduce_sum(model.losses)
+        loss_copy = loss
+
+    gradients = tape.gradient(loss, model.trainable_variables)
+    opt.apply_gradients(zip(gradients, model.trainable_variables))
+
+
+    return loss_copy
 
 
 @tf.function
-def eval_step(model, x, y, metrics):
-  logits = model(x, training=False)
-  loss = tf.reduce_sum(tf.keras.losses.sparse_categorical_crossentropy(
-        y, logits, from_logits=True))
+def valid_step(inputs):
+    images, labels = inputs
+    predictions = model(images, training=False)
+    #loss_func = tf.keras.losses.SparseCategoricalCrossentropy()
+    loss = tf.reduce_sum(tf.keras.losses.sparse_categorical_crossentropy(
+        labels, predictions))
+    loss_per_sample = loss / len(images)
+    results = {'eval_loss': loss_per_sample}
 
-  for metric in metrics.values():
-    metric.update_state(y_true=y, y_pred=logits)
-
-  loss_per_sample = loss / len(x)
-  results = {'eval_loss': loss_per_sample}
-  return results
+    return results
 
 def pack_dtensor_inputs(images, labels, image_layout, label_layout):
   num_local_devices = image_layout.mesh.num_local_devices()
@@ -154,7 +183,8 @@ for epoch in range(num_epochs):
     images, labels = pack_dtensor_inputs(
         images, labels, image_layout, label_layout)
     #print(images.layout, labels.layout)
-    results.update(train_step(model, images, labels, optimizer, metrics))
+    t_input = (images, labels)
+    #results.update(train_step(model, images, labels, optimizer, metrics))
     for metric_name, metric in metrics.items():
       results[metric_name] = metric.result()
 
@@ -168,7 +198,9 @@ for epoch in range(num_epochs):
     images, labels = input[0], input[1]
     images, labels = pack_dtensor_inputs(
         images, labels, image_layout, label_layout)
-    results.update(eval_step(model, images, labels, eval_metrics))
+    v_input = (images, labels)
+    valid_step(v_input)
+    #results.update(eval_step(model, images, labels, eval_metrics))
 
   for metric_name, metric in eval_metrics.items():
     results[metric_name] = metric.result()
