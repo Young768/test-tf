@@ -717,11 +717,12 @@ for epoch in range(num_epochs):
   epoch_start = time.time()
   train_iter = iter(train_input)
   valid_iter = iter(valid_input)
+  x = next(train_iter)
   for _ in range(nstep_per_epoch):
     global_steps += 1
     if global_steps == 1:
         start_time = time.time()
-    x = next(train_iter)
+    #x = next(train_iter)
     images, labels = x
     images, labels = pack_dtensor_inputs(
         images, labels, image_layout, label_layout)
