@@ -113,7 +113,7 @@ BATCH_NORM_DECAY = 0.9
 BATCH_NORM_EPSILON = 1e-5
 
 with tf.keras.dtensor.experimental.layout_map_scope(layout_map):
-  inputs = tf.keras.Input((28, 28, 1), batch_size=512)
+  inputs = tf.keras.Input((28, 28, 1))
   f = tf.keras.layers.Conv2D(32, (3, 3), activation='relu', name='conv1')(inputs)
   x = tf.keras.layers.MaxPooling2D((2, 2), name='pool1')(f)
   x = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', name='conv2')(x)
