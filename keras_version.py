@@ -133,6 +133,25 @@ num_epochs = 1000
 image_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=4)
 label_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=1)
 
+def _split(value, splits, axis=0):
+  children = tf.split(value, splits[0], axis=axis)
+  if len(splits) > 1:
+    splits = splits[1:]
+    children = [tf.split(child, splits, axis + 1) for child in children]
+  return tf.stack(children)
+
+def pack_tf_tensor(value, layout):
+  sharded_tensor = _split(
+      value, [layout.num_shards(i) for i in range(layout.rank)])
+  flattened = [np.ndarray([])] * layout.mesh.size
+  for offset, shard in enumerate(layout.offset_to_shard()):
+    flattened[offset] = sharded_tensor[tuple(shard)]
+  return dtensor.pack(flattened, layout)
+
+def repack_batch(x, y, x_layout, y_layout):
+  x = pack_tf_tensor(x, x_layout)
+  y = pack_tf_tensor(y, y_layout)
+  return x, y
 
 for epoch in range(num_epochs):
   print("============================")
@@ -145,7 +164,7 @@ for epoch in range(num_epochs):
 
   for input in ds_train:
     images, labels = input[0], input[1]
-    images, labels = pack_dtensor_inputs(
+    images, labels = repack_batch(
         images, labels, image_layout, label_layout)
     #print(images.layout, labels.layout)
     results.update(train_step(model, images, labels, optimizer, metrics))
@@ -160,7 +179,7 @@ for epoch in range(num_epochs):
     metric.reset_state()
   for input in ds_test:
     images, labels = input[0], input[1]
-    images, labels = pack_dtensor_inputs(
+    images, labels = repack_batch(
         images, labels, image_layout, label_layout)
     results.update(eval_step(model, images, labels, eval_metrics))
 
