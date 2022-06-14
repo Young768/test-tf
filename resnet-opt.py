@@ -38,7 +38,6 @@ val_top1 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=1,
 val_top5 = tf.keras.metrics.SparseTopKCategoricalAccuracy(k=5,
                                                             name='val_top5')
 
-layers = tf.keras.layers
 
 L2_WEIGHT_DECAY = 1e-4
 BATCH_NORM_DECAY = 0.9
@@ -736,10 +735,30 @@ def repack_local_tensor(x, layout):
 
   return dtensor.pack(components, layout)
 
+def _split(value, splits, axis=0):
+  children = tf.split(value, splits[0], axis=axis)
+  if len(splits) > 1:
+    splits = splits[1:]
+    children = [tf.split(child, splits, axis + 1) for child in children]
+  return tf.stack(children)
+
+def pack_tf_tensor(value, layout):
+  sharded_tensor = _split(
+      value, [layout.num_shards(i) for i in range(layout.rank)])
+  flattened = [np.ndarray([])] * layout.mesh.size
+  for offset, shard in enumerate(layout.offset_to_shard()):
+    flattened[offset] = sharded_tensor[tuple(shard)]
+  return dtensor.pack(flattened, layout)
+
 def repack_batch(x, y, x_layout, y_layout):
-  x = repack_local_tensor(x, x_layout)
-  y = repack_local_tensor(y, y_layout)
+  x = pack_tf_tensor(x, x_layout)
+  y = pack_tf_tensor(y, y_layout)
   return x, y
+
+#def repack_batch(x, y, x_layout, y_layout):
+#  x = repack_local_tensor(x, x_layout)
+#  y = repack_local_tensor(y, y_layout)
+#  return x, y
 
 for epoch in range(num_epochs):
   print("============================")
