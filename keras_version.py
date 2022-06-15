@@ -135,10 +135,9 @@ label_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=1)
 
 def _split(value, splits, axis=0):
   children = tf.split(value, splits[0], axis=axis)
-  print("debug", splits, len(splits))
   if len(splits) > 1:
     splits = splits[1:]
-    children = [tf.split(child, splits, axis + 1) for child in children]
+    children = [_split(child, splits, axis + 1) for child in children]
   return tf.stack(children)
 
 def pack_tf_tensor(value, layout):
