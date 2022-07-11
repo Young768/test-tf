@@ -47,7 +47,7 @@ def train_step(inputs):
 
     with tf.GradientTape() as tape:
         predictions = model(images, training=True)
-        loss = loss_func(labels, predictions)
+        loss = loss_fn(labels, predictions)
         loss += tf.reduce_sum(model.losses)
         loss_copy = loss
 
