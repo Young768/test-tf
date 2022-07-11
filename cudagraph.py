@@ -83,4 +83,4 @@ for epoch in range(num_epochs):
   step = 0
 
   for _ in range(num_steps):
-    train_step(model, images, labels, optimizer, metrics)
+    train_step(model)
