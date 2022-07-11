@@ -72,8 +72,8 @@ model = tf.keras.Model(inputs, output)
 
 
 
-num_epochs = 300
-num_steps = 100
+num_epochs = 10
+num_steps = 10
 data = iter(ds_train)
 input = next(data)
 
@@ -83,4 +83,5 @@ for epoch in range(num_epochs):
   step = 0
 
   for _ in range(num_steps):
-    train_step(input)
+    loss_val = train_step(input)
+    print("loss value is :    ", loss_val)
