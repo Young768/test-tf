@@ -38,8 +38,8 @@ ds_test = ds_test.batch(batch_size)
 ds_test = ds_test.cache()
 ds_test = ds_test.prefetch(tf.data.AUTOTUNE)
 
-optimizer = keras.optimizers.SGD(learning_rate=1e-3)
-loss_fn = keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+optimizer = tf.keras.optimizers.SGD(learning_rate=1e-3)
+loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 
 @tf.function
 def train_step(inputs):
