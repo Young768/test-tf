@@ -41,6 +41,8 @@ ds_test = ds_test.prefetch(tf.data.AUTOTUNE)
 optimizer = tf.keras.optimizers.SGD(learning_rate=1e-3)
 loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 
+tf.config.optimizer.set_experimental_options()
+
 @tf.function
 def train_step(inputs):
     images, labels = inputs
