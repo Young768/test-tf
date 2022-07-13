@@ -49,15 +49,15 @@ def train_step(inputs):
 
     with tf.GradientTape() as tape:
         predictions = model(images, training=True)
-        loss = loss_fn(labels, predictions)
-        loss += tf.reduce_sum(model.losses)
-        loss_copy = loss
+        #loss = loss_fn(labels, predictions)
+        #loss += tf.reduce_sum(model.losses)
+        #loss_copy = loss
 
-    gradients = tape.gradient(loss, model.trainable_variables)
-    optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+    #gradients = tape.gradient(loss, model.trainable_variables)
+    #optimizer.apply_gradients(zip(gradients, model.trainable_variables))
 
 
-    return loss_copy
+    return predictions
 
 
 inputs = tf.keras.Input((28, 28, 1))
