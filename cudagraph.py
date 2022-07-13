@@ -74,8 +74,8 @@ model = tf.keras.Model(inputs, output)
 
 
 
-num_epochs = 10
-num_steps = 10
+num_epochs = 2
+num_steps = 2
 data = iter(ds_train)
 input = next(data)
 
