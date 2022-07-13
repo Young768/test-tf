@@ -86,4 +86,4 @@ for epoch in range(num_epochs):
 
   for _ in range(num_steps):
     loss_val = train_step(input)
-    print("loss value is :    ", loss_val)
+    print("done!    ")
