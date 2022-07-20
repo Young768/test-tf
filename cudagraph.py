@@ -1,5 +1,6 @@
 import tensorflow as tf
 import tensorflow_datasets as tfds
+os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
 layers = tf.keras.layers
 
@@ -61,14 +62,9 @@ def train_step(inputs):
 
 
 inputs = tf.keras.Input((28, 28, 1))
-#f = tf.keras.layers.Conv2D(32, (3, 3), activation='relu', name='conv1')(inputs)
 x = tf.keras.layers.MaxPooling2D((2, 2), name='pool1')(inputs)
 x = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', name='conv2')(x)
 output = tf.keras.layers.MaxPooling2D((2, 2), name='pool2')(x)
-#x = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', name='conv3')(x)
-#x = tf.keras.layers.Flatten()(x)
-#x = tf.keras.layers.Dense(64, activation='relu', name='feature')(x)
-#output = tf.keras.layers.Dense(10, name='feature2')(x)
 model = tf.keras.Model(inputs, output)
 
 
