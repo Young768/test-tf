@@ -82,6 +82,6 @@ for epoch in range(num_epochs):
   step = 0
 
   for _ in range(num_steps):
-    print(input[0].device)
     loss_val = train_step(input)
+    print(loss_val.device)
     print("done!    ")
