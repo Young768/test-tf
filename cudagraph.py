@@ -48,7 +48,7 @@ tf.config.optimizer.set_experimental_options({"cudagraph": True})
 @tf.function
 def train_step(inputs):
     images, labels = inputs
-    print(images.device, "          ", labels.device)
+
     with tf.GradientTape() as tape:
         predictions = model(images, training=True)
         #loss = loss_fn(labels, predictions)
@@ -82,5 +82,6 @@ for epoch in range(num_epochs):
   step = 0
 
   for _ in range(num_steps):
+    print(input[0].device)
     loss_val = train_step(input)
     print("done!    ")
