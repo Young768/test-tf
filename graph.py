@@ -65,9 +65,7 @@ def train_step(inputs):
 inputs = tf.keras.Input((28,28))
 f = tf.keras.layers.Flatten()(inputs)
 x = tf.keras.layers.Dense(128, activation='relu', name='feature')(f)
-output = tf.keras.layers.BatchNormalization(axis=bn_axis,momentum=BATCH_NORM_DECAY,
-      epsilon=BATCH_NORM_EPSILON,
-      name="test")(x)
+output = tf.keras.layers.BatchNormalization(name="test")(x)
 model = tf.keras.Model(inputs, output)
 
 
