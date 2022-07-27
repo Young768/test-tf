@@ -13,6 +13,8 @@ if gpus:
 
 DEVICES = [f'GPU:{i}' for i in range(8)]
 mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
+tf.keras.backend.experimental.enable_tf_random_generator()
+tf.keras.utils.set_random_seed(1337)
 
 train_data = tfds.load('imdb_reviews', split='train', shuffle_files=True, batch_size=64)
 
