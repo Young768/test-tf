@@ -23,19 +23,30 @@ def vectorize(features):
   return text_vectorization(features['text']), features['label']
 
 train_data_vec = train_data.map(vectorize)
+unsharded_layout_2d = dtensor.Layout.replicated(mesh, 2)
+unsharded_layout_1d = dtensor.Layout.replicated(mesh, 1)
 
 model = tf.keras.models.Sequential([
   tf.keras.layers.Input(1200),
   tf.keras.layers.Dense(128,
                         activation='relu',
-                        name='d1'),
-  tf.keras.layers.BatchNormalization(name="b"),
+                        name='d1',
+                        kernel_layout=unsharded_layout_2d,
+                        bias_layout=unsharded_layout_1d),
+  tf.keras.layers.BatchNormalization(name="b",
+                                     gamma_layout=unsharded_layout_1d,
+                                     beta_layout=unsharded_layout_1d,
+                                     moving_mean_layout=unsharded_layout_1d,
+                                     moving_variance_layout=unsharded_layout_1d,                                     ),
   tf.keras.layers.Dense(2,
-                        name='d2')
+                        activation='relu',
+                        name='d2',
+                        kernel_layout=unsharded_layout_2d,
+                        bias_layout=unsharded_layout_1d)
 ])
 
 sample_x, sample_y = train_data_vec.take(1).get_single_element()
-sample_x = dtensor.copy_to_mesh(sample_x, dtensor.Layout.replicated(WORLD, rank=2))
+sample_x = dtensor.copy_to_mesh(sample_x, dtensor.Layout.replicated(mesh, rank=2))
 
 def repack_local_tensor(x, layout):
   """Repacks a local Tensor-like to a DTensor with layout.
