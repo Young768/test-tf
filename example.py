@@ -107,7 +107,7 @@ def train_step(model, x, y, learning_rate=tf.constant(1e-4)):
   loss_per_sample = loss / len(x)
   return {'loss': loss_per_sample, 'accuracy': accuracy}
 
-num_epochs = 2
+num_epochs = 10
 
 for epoch in range(num_epochs):
   step = 0
@@ -121,5 +121,4 @@ for epoch in range(num_epochs):
 
     pbar.update(step, values=metrics.items(), finalize=False)
     step += 1
-  manager.save()
   pbar.update(step, values=metrics.items(), finalize=True)
