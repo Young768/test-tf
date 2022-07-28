@@ -25,7 +25,10 @@ def vectorize(features):
   return text_vectorization(features['text']), features['label']
 
 train_data_vec = train_data.map(vectorize)
+DEVICES = [f'GPU:{i}' for i in range(8)]
+mesh = dtensor.create_mesh([("batch", 4), ("model", 2)], devices=DEVICES)
 sharded_layout_2d_0 = dtensor.Layout([dtensor.UNSHARDED, "model"], mesh)
+sharded_layout_1d_0 = dtensor.Layout(["model"], mesh)
 sharded_layout_2d_1 = dtensor.Layout(["model", dtensor.UNSHARDED], mesh)
 unsharded_layout_1d = dtensor.Layout.replicated(mesh, 1)
 
@@ -35,17 +38,17 @@ model = tf.keras.models.Sequential([
                         activation='relu',
                         name='d1',
                         kernel_layout=sharded_layout_2d_0,
-                        bias_layout=sharded_layout_2d_0.delete([0])),
+                        bias_layout=sharded_layout_1d_0),
   tf.keras.layers.BatchNormalization(name="b",
                                      gamma_layout=unsharded_layout_1d,
                                      beta_layout=unsharded_layout_1d,
                                      moving_mean_layout=unsharded_layout_1d,
-                                     moving_variance_layout=unsharded_layout_1d,                                     ),
+                                     moving_variance_layout=unsharded_layout_1d),
   tf.keras.layers.Dense(2,
                         activation='relu',
                         name='d2',
                         kernel_layout=sharded_layout_2d_1,
-                        bias_layout=sharded_layout_2d_1.delete([0]))
+                        bias_layout=unsharded_layout_1d)
 ])
 
 sample_x, sample_y = train_data_vec.take(1).get_single_element()
