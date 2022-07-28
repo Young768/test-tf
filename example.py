@@ -45,7 +45,7 @@ model = tf.keras.models.Sequential([
                         activation='relu',
                         name='d2',
                         kernel_layout=sharded_layout_2d_1,
-                        bias_layout=unsharded_layoutsharded_layout_2d_1.delete([0]))
+                        bias_layout=sharded_layout_2d_1.delete([0]))
 ])
 
 sample_x, sample_y = train_data_vec.take(1).get_single_element()
