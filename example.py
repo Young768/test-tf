@@ -12,7 +12,7 @@ if gpus:
   print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
 
 DEVICES = [f'GPU:{i}' for i in range(8)]
-mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
+mesh = dtensor.create_mesh([("batch", 4), ("model", 2)], devices=DEVICES)
 tf.keras.backend.experimental.enable_tf_random_generator()
 tf.keras.utils.set_random_seed(1337)
 
@@ -25,7 +25,8 @@ def vectorize(features):
   return text_vectorization(features['text']), features['label']
 
 train_data_vec = train_data.map(vectorize)
-unsharded_layout_2d = dtensor.Layout.replicated(mesh, 2)
+sharded_layout_2d_0 = dtensor.Layout([dtensor.UNSHARDED, "model"], mesh)
+sharded_layout_2d_1 = dtensor.Layout(["model", dtensor.UNSHARDED], mesh)
 unsharded_layout_1d = dtensor.Layout.replicated(mesh, 1)
 
 model = tf.keras.models.Sequential([
@@ -33,8 +34,8 @@ model = tf.keras.models.Sequential([
   tf.keras.layers.Dense(128,
                         activation='relu',
                         name='d1',
-                        kernel_layout=unsharded_layout_2d,
-                        bias_layout=unsharded_layout_1d),
+                        kernel_layout=sharded_layout_2d_0,
+                        bias_layout=sharded_layout_2d_0.delete([0])),
   tf.keras.layers.BatchNormalization(name="b",
                                      gamma_layout=unsharded_layout_1d,
                                      beta_layout=unsharded_layout_1d,
@@ -43,8 +44,8 @@ model = tf.keras.models.Sequential([
   tf.keras.layers.Dense(2,
                         activation='relu',
                         name='d2',
-                        kernel_layout=unsharded_layout_2d,
-                        bias_layout=unsharded_layout_1d)
+                        kernel_layout=sharded_layout_2d_1,
+                        bias_layout=unsharded_layoutsharded_layout_2d_1.delete([0]))
 ])
 
 sample_x, sample_y = train_data_vec.take(1).get_single_element()
