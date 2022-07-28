@@ -87,6 +87,7 @@ def repack_batch(x, y, mesh):
 
 sample_x, sample_y = train_data_vec.take(1).get_single_element()
 sample_x, sample_y = repack_batch(sample_x, sample_y, mesh)
+optimizer = tf.keras.dtensor.experimental.optimizers.Adam(0.01, mesh=mesh)
 
 @tf.function
 def train_step(model, x, y, learning_rate=tf.constant(1e-4)):
@@ -99,6 +100,7 @@ def train_step(model, x, y, learning_rate=tf.constant(1e-4)):
             logits=logits, labels=y))
   parameters = model.trainable_variables
   gradients = tape.gradient(loss, parameters)
+  optimizer.apply_gradients(zip(gradients, model.trainable_variables))
   for parameter, parameter_gradient in zip(parameters, gradients):
     parameter.assign_sub(learning_rate * parameter_gradient)
 
