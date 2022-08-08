@@ -70,8 +70,7 @@ dtensor_ds_train = dtensor.DTensorDataset(
   dataset=ds_train,
   global_batch_size=batch_size,
   mesh=mesh,
-  layouts=(image_layout, label_layout),
-  prefetch=tf.data.AUTOTUNE)
+  layouts=(image_layout, label_layout))
 
 #ds_train = ds_train.map(
 #    normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
