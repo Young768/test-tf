@@ -64,8 +64,8 @@ ds_train = ds_train.map(
     normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
 ds_train = ds_train.cache()
 ds_train = ds_train.shuffle(ds_info.splits['train'].num_examples)
-ds_train = ds_train.batch(batch_size)
-ds_train = ds_train.prefetch(tf.data.AUTOTUNE)
+#ds_train = ds_train.batch(batch_size)
+#ds_train = ds_train.prefetch(tf.data.AUTOTUNE)
 
 ds_test = ds_test.map(
     normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
