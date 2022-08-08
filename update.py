@@ -122,6 +122,9 @@ num_epochs = 3
 image_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=4)
 label_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=1)
 
+d_dataset = dtensor.DTensorDataset(dataset=dataset, global_batch_size=16, mesh=mesh,
+                                   layouts=layout, batch_dim='batch')
+
 for epoch in range(num_epochs):
   print("============================")
   print("Epoch: ", epoch)
@@ -132,10 +135,11 @@ for epoch in range(num_epochs):
   pbar = tf.keras.utils.Progbar(target=None, stateful_metrics=[])
   for input in ds_train:
     images, labels = input[0], input[1]
-    images, labels = pack_dtensor_inputs(
-        images, labels, image_layout, label_layout)
-
-    results.update(train_step(model, images, labels, optimizer, metrics))
+    d_images = dtensor.DTensorDataset(dataset=images, global_batch_size=batch_size, mesh=mesh,
+                                       layouts=image_layout, batch_dim='batch')
+    d_labels = dtensor.DTensorDataset(dataset=labels, global_batch_size=batch_size, mesh=mesh,
+                                       layouts=label_layout, batch_dim='batch')
+    results.update(train_step(d_images, d_labels, labels, optimizer, metrics))
     for metric_name, metric in metrics.items():
       results[metric_name] = metric.result()
 
