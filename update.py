@@ -122,9 +122,6 @@ num_epochs = 3
 image_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=4)
 label_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=1)
 
-d_dataset = dtensor.DTensorDataset(dataset=dataset, global_batch_size=16, mesh=mesh,
-                                   layouts=layout, batch_dim='batch')
-
 for epoch in range(num_epochs):
   print("============================")
   print("Epoch: ", epoch)
