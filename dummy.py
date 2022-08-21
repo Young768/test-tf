@@ -17,6 +17,10 @@ if gpus:
 @tf.function
 def step(tensor):
     out = tf.add(tensor, 1.0)
+    out = tf.add(out, 1.0)
+    out = tf.add(out, 1.0)
+    out = tf.add(out, 1.0)
+    out = tf.add(out, 1.0)
     out = tf.multiply(out, 2.0)
     out = tf.multiply(out, 2.0)
     out = tf.multiply(out, 2.0)
