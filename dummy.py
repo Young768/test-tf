@@ -28,4 +28,4 @@ input = tf.constant(value=1)
 num_epochs = 10
 
 for epoch in range(num_epochs):
-  output = foo(input)
+  output = step(input)
