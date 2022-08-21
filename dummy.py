@@ -23,7 +23,7 @@ def step(tensor):
     out = tf.multiply(out, 2.0)
     return out
 
-input = tf.constant(value=1)
+input = tf.constant(value=1.0)
 
 num_epochs = 10
 
