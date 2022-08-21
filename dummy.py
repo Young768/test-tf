@@ -16,16 +16,16 @@ if gpus:
 
 @tf.function
 def step(tensor):
-    out = tf.add(tensor, 1.0)
-    out = tf.add(out, 1.0)
-    out = tf.add(out, 1.0)
-    out = tf.add(out, 1.0)
-    out = tf.add(out, 1.0)
-    out = tf.multiply(out, 2.0)
-    out = tf.multiply(out, 2.0)
-    out = tf.multiply(out, 2.0)
-    out = tf.multiply(out, 2.0)
-    out = tf.multiply(out, 2.0)
+    out = tf.add(tensor, 1.0, name="Node_0")
+    out = tf.add(out, 1.0, name="Node_1")
+    out = tf.add(out, 1.0, name="Node_2")
+    out = tf.add(out, 1.0, name="Node_3")
+    out = tf.add(out, 1.0, name="Node_4")
+    out = tf.multiply(out, 2.0, name="Node_5")
+    out = tf.multiply(out, 2.0, name="Node_6")
+    out = tf.multiply(out, 2.0, name="Node_7")
+    out = tf.multiply(out, 2.0, name="Node_8")
+    out = tf.multiply(out, 2.0, name="Node_9")
     return out
 
 input = tf.constant(value=1.0)
