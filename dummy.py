@@ -14,19 +14,18 @@ if gpus:
 
 
 
-inputs = tf.keras.Input((28, 28, 1))
-x = tf.keras.layers.MaxPooling2D((2, 2), name='pool1')(inputs)
-x = tf.keras.layers.Conv2D(64, (3, 3), activation='relu', name='conv2')(x)
-output = tf.keras.layers.MaxPooling2D((2, 2), name='pool2')(x)
-model = tf.keras.Model(inputs, output)
-
 @tf.function
-def foo(inputs):
-  return model(inputs)
+def step(tensor):
+    out = tf.add(tensor, 1.0)
+    out = tf.multiply(out, 2.0)
+    out = tf.add(out, 2.0)
+    out = tf.multiply(out, 2.0)
+    out = tf.multiply(out, 2.0)
+    return out
 
-input = tf.constant(value=1, shape=(1, 28, 28, 1))
+input = tf.constant(value=1)
 
 num_epochs = 10
 
 for epoch in range(num_epochs):
-  out = foo(input)
+  output = foo(input)
