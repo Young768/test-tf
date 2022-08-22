@@ -12,6 +12,9 @@ if gpus:
   logical_gpus = tf.config.list_logical_devices('GPU')
   print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
 
+rank_2_tensor = tf.constant([[1, 2],
+                             [3, 4],
+                             [5, 6]], dtype=tf.float16)
 
 
 @tf.function
@@ -21,11 +24,11 @@ def step(tensor):
     out = tf.add(out, 1.0, name="Node_2")
     out = tf.add(out, 1.0, name="Node_3")
     out = tf.add(out, 1.0, name="Node_4")
-    out = tf.multiply(out, 2.0, name="Node_5")
-    out = tf.multiply(out, 2.0, name="Node_6")
-    out = tf.multiply(out, 2.0, name="Node_7")
-    out = tf.multiply(out, 2.0, name="Node_8")
-    out = tf.multiply(out, 2.0, name="Node_9")
+    out = tf.add(out, 2.0, name="Node_5")
+    out = tf.add(out, 2.0, name="Node_6")
+    out = tf.add(out, 2.0, name="Node_7")
+    out = tf.add(out, 2.0, name="Node_8")
+    out = tf.add(out, 2.0, name="Node_9")
     return out
 
 input = tf.constant(value=1.0)
@@ -33,4 +36,4 @@ input = tf.constant(value=1.0)
 num_epochs = 10
 
 for epoch in range(num_epochs):
-  output = step(input)
+  output = step(rank_2_tensor)
