@@ -70,8 +70,6 @@ model.compile(loss='sparse_categorical_crossentropy', optimizer=tf.optimizers.SG
 
 model.fit(train_ds,
           epochs=50,
-          steps_per_epoch=10)
-
-print('My custom loss: ', model.loss_tracker.result().numpy())
+          steps_per_epoch=20)
 
 
