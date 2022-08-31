@@ -12,7 +12,7 @@ def step_1(tensor):
     gradients = tape.gradient(out, tensor)
     return gradients
 
-inp = tf.constant(value=0, shape=(1, 28, 28, 1))
+inp = tf.constant(value=1.0, shape=(1, 28, 28, 1))
 for i in range(40):
     output_tensor = step_1(inp)
 print("Done.")
