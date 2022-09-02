@@ -1,9 +1,7 @@
 import tensorflow as tf
 
 inputs = tf.keras.Input((28, 28, 1))
-x = tf.keras.layers.BatchNormalization()(inputs)
-x = tf.keras.layers.BatchNormalization()(x)
-output = tf.keras.layers.BatchNormalization()(x)
+output = tf.keras.layers.BatchNormalization()(inputs)
 model = tf.keras.Model(inputs, output)
 
 @tf.function
