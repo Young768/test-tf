@@ -13,4 +13,4 @@ def foo(inputs):
 inp = tf.constant(value=1.0, shape=(1, 28, 28, 1))
 for i in range(40):
     output_tensor = foo(inp)
-print("Done.")
+    print("output:", output_tensor)
