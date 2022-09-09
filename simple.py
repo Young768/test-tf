@@ -69,12 +69,13 @@ model = keras.models.Sequential([
 
 @tf.function
 def step(tensor):
-    output = model(tensor)
+    images, labels = tensor
+    output = model(images)
     return output
 
 input = iter(train_ds)
 for i in range(40):
-    for x, y in next(input):
-        output_tensor = step(x)
-        print("output: {}".format(i), output_tensor)
+    input = next(data)
+    output_tensor = step(input)
+    print("output: {}".format(i), output_tensor)
     # input_tensor.assign_add(output_tensor[1])
