@@ -76,6 +76,6 @@ def step(tensor):
 input = iter(train_ds)
 for i in range(40):
     input = next(data)
-    output_tensor = step(input)
+    output_tensor = step(train_ds)
     print("output: {}".format(i), output_tensor)
     # input_tensor.assign_add(output_tensor[1])
