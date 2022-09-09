@@ -13,7 +13,7 @@ def step(tensor):
     return out
 
 # input_tensor = tf.Variable(initial_value=1.0)
-for i in range(20):
+for i in range(40):
     input_tensor = tf.Variable(initial_value=1.0)
     output_tensor = step(input_tensor)
     print("{}".format(i), output_tensor)
