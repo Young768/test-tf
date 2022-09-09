@@ -76,5 +76,11 @@ input = iter(train_ds)
 for i in range(40):
     inp = tf.constant(value=1.0, shape=(1, 227,227,3))
     output_tensor = step(inp)
+    if i == 1:
+        prev = output_tensor
+    if i > 1:
+        assert output_tensor == prev, "Dose not match!"
+        prev = output_tensor
+
     print("output: {}".format(i), output_tensor)
     # input_tensor.assign_add(output_tensor[1])
