@@ -4,12 +4,12 @@ os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
 @tf.function
 def step(tensor):
-    out = tf.multiply(tensor, 1.0)
-    out = tf.multiply(out, 1.0)
-    out = tf.multiply(out, 1.0)
-    out = tf.multiply(out, 1.0)
-    out = tf.multiply(out, 1.0)
-    out = tf.multiply(out, 1.0)
+    out = tf.multiply(tensor, 2.0)
+    out = tf.multiply(out, 2.0)
+    out = tf.multiply(out, 2.0)
+    out = tf.multiply(out, 2.0)
+    out = tf.multiply(out, 2.0)
+    out = tf.multiply(out, 2.0)
     return out
 
 # input_tensor = tf.Variable(initial_value=1.0)
