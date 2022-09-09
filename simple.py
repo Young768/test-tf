@@ -79,7 +79,7 @@ for i in range(40):
     if i == 1:
         prev = output_tensor
     if i > 1:
-        assert output_tensor == prev, "Dose not match!"
+        tf.debugging.assert_near(output_tensor, prev)
         prev = output_tensor
 
     print("output: {}".format(i), output_tensor)
