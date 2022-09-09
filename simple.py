@@ -83,5 +83,5 @@ for i in range(40):
         tf.debugging.assert_near(output_tensor, prev)
         prev = output_tensor
 
-    print("output: {}".format(i), output_tensor)
+    #print("output: {}".format(i), output_tensor)
     # input_tensor.assign_add(output_tensor[1])
