@@ -11,6 +11,6 @@ def foo(inputs):
   return model(inputs)
 
 inp = tf.constant(value=1.0, shape=(1, 10, 1))
-for i in range(20):
+for i in range(23):
     output_tensor = foo(inp)
     print("output:", output_tensor)
