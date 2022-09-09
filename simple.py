@@ -33,13 +33,12 @@ def step(tensor):
     output = model(tensor)
     return output
 
-input = iter(train_ds)
 for i in range(40):
     inp = tf.constant(value=1.0, shape=(1, 227,227,3))
     output_tensor = step(inp)
-    if i == 1:
+    if i == 0:
         prev = output_tensor
-    if i > 1:
+    if i > 0:
         tf.debugging.assert_near(output_tensor, prev)
         prev = output_tensor
 
