@@ -8,7 +8,8 @@ os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 model = keras.models.Sequential([
     keras.layers.MaxPooling2D((2, 2), name='pool1'),
     keras.layers.Conv2D(64, (3, 3), activation='relu', name='conv2'),
-    keras.layers.MaxPooling2D((2, 2), name='pool2')
+    keras.layers.MaxPooling2D((2, 2), name='pool2'),
+    keras.layers.BatchNormalization()
 ])
 
 @tf.function
