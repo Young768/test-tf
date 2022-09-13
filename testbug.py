@@ -11,12 +11,12 @@ model = keras.models.Sequential([
     keras.layers.MaxPooling2D((2, 2), name='pool1'),
     keras.layers.Conv2D(64, (3, 3), activation='relu', name='conv2'),
     keras.layers.MaxPooling2D((2, 2), name='pool2'),
-    #keras.layers.BatchNormalization()
+    keras.layers.BatchNormalization()
 ])
 
 optimizer = tf.keras.optimizers.SGD()
 model.compile(optimizer)
-test_layer = model.layers[2]
+test_layer = model.layers[3]
 class CustomCallback(tf.keras.callbacks.Callback):
    def __init__(self, data):
         self.data = data
