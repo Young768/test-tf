@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import os
 import time
 from keras.callbacks import Callback
-from tensorflow.keras import backend as K
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -17,15 +16,18 @@ model = keras.models.Sequential([
 
 optimizer = tf.keras.optimizers.SGD()
 model.compile(optimizer)
-class CustomCallback(keras.callbacks.Callback):
-    def on_predict_batch_end(self, batch, logs=None):
-        for i in range(len(model.layers)):
-            get_layer_output = K.function(inputs=self.model.layers[i].input, outputs=self.model.layers[i].output)
-            print('\n Training: output of the layer {} is {} ends at {}'.format(i, get_layer_output.outputs))
+test_layer = model.layers[2]
+class CustomCallback(tf.keras.callbacks.Callback):
+   def __init__(self, data, sample_size):
+        self.data = data
+   def on_epoch_end(self, epoch, logs=None):
+        encoder_outputs, state_h, state_c = test_layer(self.data)
+        tf.print('output --> ', encoder_outputs)
+        tf.print('state_h --> ', state_h)
+        tf.print('state_c --> ', state_c)
 
 @tf.function
 def step(tensor):
-    #output = model(tensor)
     output = model.evaluate(tensor)
     return output
 
@@ -33,8 +35,7 @@ def step(tensor):
 for i in range(1):
     inp = tf.constant(value=1.0, shape=(1, 28, 28, 1))
     dataset = tf.data.Dataset.from_tensor_slices(inp).repeat().batch(1)
-    #output_tensor = step(dataset)
-    output_tensor = model.predict(dataset, steps=40, callbacks=[CustomCallback()])
+    output_tensor = model.predict(dataset, steps=40, callbacks=[CustomCallback(inp)])
     if i == 0:
         prev = output_tensor
     if i > 0:
