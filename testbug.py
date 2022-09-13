@@ -21,7 +21,7 @@ class CustomCallback(tf.keras.callbacks.Callback):
    def __init__(self, data):
         self.data = data
    def on_predict_batch_end(self, epoch, logs=None):
-        encoder_outputs, state_h, state_c = test_layer(self.data)
+        encoder_outputs = test_layer(self.data)
         tf.print('output --> ', encoder_outputs)
         tf.print('state_h --> ', state_h)
         tf.print('state_c --> ', state_c)
