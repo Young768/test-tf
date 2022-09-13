@@ -25,7 +25,7 @@ class CustomCallback(tf.keras.callbacks.Callback):
         out = model.layers[0](self.data)
         out = model.layers[1](out)
         out = model.layers[2](out)
-        encoder_outputs = test_layer[3](out)
+        encoder_outputs = test_layer(out)
         tf.print('output --> ', encoder_outputs)
 
 @tf.function
