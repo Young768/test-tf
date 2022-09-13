@@ -24,7 +24,7 @@ for i in range(40):
     inp = tf.constant(value=1.0, shape=(1, 28, 28, 1))
     dataset = tf.data.Dataset.from_tensor_slices(inp).repeat().batch(1)
     #output_tensor = step(dataset)
-    output_tensor = model.evaluate(dataset)
+    output_tensor = model.evaluate(dataset, steps=1)
     if i == 0:
         prev = output_tensor
     if i > 0:
