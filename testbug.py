@@ -18,9 +18,9 @@ optimizer = tf.keras.optimizers.SGD()
 model.compile(optimizer)
 test_layer = model.layers[2]
 class CustomCallback(tf.keras.callbacks.Callback):
-   def __init__(self, data, sample_size):
+   def __init__(self, data):
         self.data = data
-   def on_epoch_end(self, epoch, logs=None):
+   def on_predict_batch_end(self, epoch, logs=None):
         encoder_outputs, state_h, state_c = test_layer(self.data)
         tf.print('output --> ', encoder_outputs)
         tf.print('state_h --> ', state_h)
