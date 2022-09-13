@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import os
 import time
 from keras.callbacks import Callback
+from tensorflow.keras import backend as K
 
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
@@ -18,7 +19,7 @@ optimizer = tf.keras.optimizers.SGD()
 model.compile(optimizer)
 class CustomCallback(keras.callbacks.Callback):
     def on_predict_batch_end(self, batch, logs=None):
-        for i in range(len(model_inception.layers)):
+        for i in range(len(model.layers)):
             get_layer_output = K.function(inputs=self.model.layers[i].input, outputs=self.model.layers[i].output)
             print('\n Training: output of the layer {} is {} ends at {}'.format(i, get_layer_output.outputs))
 
