@@ -14,11 +14,13 @@ model = keras.models.Sequential([
     #keras.layers.BatchNormalization()
 ])
 
+optimizer = tf.keras.optimizers.SGD()
+model.compile(optimizer)
 class MyCustomCallback(tf.keras.callbacks.Callback):
     def on_train_batch_end(self, batch, logs=None):
-        for i in range(len(model_inception.layers)):
+        for i in range(len(model.layers)):
             get_layer_output = K.function(inputs=self.model.layers[i].input, outputs=self.model.layers[i].output)
-            print('\n Training: output of the layer {} is {} ends at {}'.format(i, get_layer_output.outputs, datetime.datetime.now().time()))
+            print('\n Training: output of the layer {} is {} ends at {}'.format(i, get_layer_output.outputs))
 
 @tf.function
 def step(tensor):
@@ -26,13 +28,12 @@ def step(tensor):
     output = model.evaluate(tensor)
     return output
 
-optimizer = tf.keras.optimizers.SGD()
-model.compile(optimizer)
-for i in range(2):
+
+for i in range(1):
     inp = tf.constant(value=1.0, shape=(1, 28, 28, 1))
     dataset = tf.data.Dataset.from_tensor_slices(inp).repeat().batch(1)
     #output_tensor = step(dataset)
-    output_tensor = model.predict(dataset, steps=40)
+    output_tensor = model.predict(dataset, steps=40, callbacks=[MyCustomCallback()])
     if i == 0:
         prev = output_tensor
     if i > 0:
