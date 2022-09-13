@@ -3,6 +3,8 @@ from tensorflow import keras
 import matplotlib.pyplot as plt
 import os
 import time
+from keras.callbacks import Callback
+
 os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
 
 model = keras.models.Sequential([
@@ -11,6 +13,12 @@ model = keras.models.Sequential([
     keras.layers.MaxPooling2D((2, 2), name='pool2'),
     #keras.layers.BatchNormalization()
 ])
+
+class MyCustomCallback(tf.keras.callbacks.Callback):
+    def on_train_batch_end(self, batch, logs=None):
+        for i in range(len(model_inception.layers)):
+            get_layer_output = K.function(inputs=self.model.layers[i].input, outputs=self.model.layers[i].output)
+            print('\n Training: output of the layer {} is {} ends at {}'.format(i, get_layer_output.outputs, datetime.datetime.now().time()))
 
 @tf.function
 def step(tensor):
@@ -24,7 +32,7 @@ for i in range(40):
     inp = tf.constant(value=1.0, shape=(1, 28, 28, 1))
     dataset = tf.data.Dataset.from_tensor_slices(inp).repeat().batch(1)
     #output_tensor = step(dataset)
-    output_tensor = model.evaluate(dataset, steps=40)
+    res = model.predict(inp)
     if i == 0:
         prev = output_tensor
     if i > 0:
