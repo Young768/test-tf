@@ -17,7 +17,7 @@ model = keras.models.Sequential([
 optimizer = tf.keras.optimizers.SGD()
 model.compile(optimizer)
 test_layer = model.layers[3]
-tf.print(test_layer)
+tf.print("debugggggggggggggggggg",test_layer)
 class CustomCallback(tf.keras.callbacks.Callback):
    def __init__(self, data):
         self.data = data
