@@ -28,11 +28,11 @@ def step(tensor):
 
 optimizer = tf.keras.optimizers.SGD()
 model.compile(optimizer)
-for i in range(40):
+for i in range(2):
     inp = tf.constant(value=1.0, shape=(1, 28, 28, 1))
     dataset = tf.data.Dataset.from_tensor_slices(inp).repeat().batch(1)
     #output_tensor = step(dataset)
-    output_tensor = model.predict(inp)
+    output_tensor = model.predict(inp, steps=40)
     if i == 0:
         prev = output_tensor
     if i > 0:
