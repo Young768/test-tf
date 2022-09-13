@@ -23,8 +23,6 @@ class CustomCallback(tf.keras.callbacks.Callback):
    def on_predict_batch_end(self, epoch, logs=None):
         encoder_outputs = test_layer(self.data)
         tf.print('output --> ', encoder_outputs)
-        tf.print('state_h --> ', state_h)
-        tf.print('state_c --> ', state_c)
 
 @tf.function
 def step(tensor):
