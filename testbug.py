@@ -30,14 +30,15 @@ class CustomCallback(tf.keras.callbacks.Callback):
 
 @tf.function
 def step(tensor):
-    output = model.evaluate(tensor)
+    output = model(tensor)
     return output
 
 
-for i in range(1):
+for i in range(40):
     inp = tf.constant(value=1.0, shape=(1, 28, 28, 1))
-    dataset = tf.data.Dataset.from_tensor_slices(inp).repeat().batch(1)
-    output_tensor = model.predict(dataset, steps=40)
+    #dataset = tf.data.Dataset.from_tensor_slices(inp).repeat().batch(1)
+    #output_tensor = model.predict(dataset, steps=40)
+    output_tensor = step(inp)
     if i == 0:
         prev = output_tensor
     if i > 0:
