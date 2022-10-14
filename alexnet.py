@@ -45,6 +45,7 @@ validation_ds = (validation_ds
                   .batch(batch_size=32, drop_remainder=True))
 
 model = keras.models.Sequential([
+    keras.layers.BatchNormalization(),
     keras.layers.MaxPool2D(pool_size=(3, 3), strides=(2, 2)),
     keras.layers.Flatten(),
 ])
