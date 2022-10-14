@@ -46,8 +46,8 @@ validation_ds = (validation_ds
 
 model = keras.models.Sequential([
     keras.layers.BatchNormalization(),
-    keras.layers.MaxPool2D(pool_size=(3, 3), strides=(2, 2)),
-    keras.layers.Flatten(),
+    #keras.layers.MaxPool2D(pool_size=(3, 3), strides=(2, 2)),
+    #keras.layers.Flatten(),
 ])
 
 model.compile(loss='sparse_categorical_crossentropy', optimizer=tf.optimizers.SGD(lr=0.001), metrics=['accuracy'])
