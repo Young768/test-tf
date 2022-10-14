@@ -49,11 +49,6 @@ model = keras.models.Sequential([
     keras.layers.BatchNormalization(),
     keras.layers.MaxPool2D(pool_size=(3,3), strides=(2,2)),
     keras.layers.Flatten(),
-    keras.layers.Dense(4096, activation='relu'),
-    keras.layers.Dropout(0.5),
-    keras.layers.Dense(4096, activation='relu'),
-    keras.layers.Dropout(0.5),
-    keras.layers.Dense(10, activation='softmax')
 ])
 
 model.compile(loss='sparse_categorical_crossentropy', optimizer=tf.optimizers.SGD(lr=0.001), metrics=['accuracy'])
