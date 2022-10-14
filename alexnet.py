@@ -46,6 +46,7 @@ validation_ds = (validation_ds
 
 model = keras.models.Sequential([
     keras.layers.Conv2D(filters=96, kernel_size=(11,11), strides=(4,4), activation='relu', input_shape=(227,227,3)),
+    keras.layers.BatchNormalization(),
 ])
 
 model.compile(loss='sparse_categorical_crossentropy', optimizer=tf.optimizers.SGD(lr=0.001), metrics=['accuracy'])
