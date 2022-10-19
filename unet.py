@@ -85,7 +85,7 @@ img_size = (None, None)
 
 num_classes = 3
 model = get_model(img_size, num_classes)
-model.summary()
+#model.summary()
 
 input_dir = "images/"
 target_dir = "annotations/trimaps/"
@@ -105,7 +105,7 @@ target_img_paths = sorted(
     ]
 )
 
-print("Number of samples:", len(input_img_paths))
+#print("Number of samples:", len(input_img_paths))
 
 # Just print a few image paths
 for input_path, target_path in zip(input_img_paths[:10], target_img_paths[:10]):
@@ -171,3 +171,42 @@ callbacks = [
 # Train the model, doing validation at the end of each epoch.
 epochs = 15
 model.fit(train_gen, epochs=epochs, validation_data=val_gen, callbacks=callbacks)
+
+
+tf.saved_model.save(model, 'unet_pets_saved_model')
+
+
+def get_func_from_saved_model(saved_model_dir):
+    saved_model_loaded = tf.saved_model.load(
+        saved_model_dir, tags=[tag_constants.SERVING])
+    graph_func = saved_model_loaded.signatures[
+        signature_constants.DEFAULT_SERVING_SIGNATURE_DEF_KEY]
+    return graph_func, saved_model_loaded
+
+
+def predict_and_benchmark_throughput(batched_input, model, N_warmup_run=50, N_run=500,
+                                     result_key='predictions'):
+    elapsed_time = []
+    all_preds = []
+    batch_size = batched_input.shape[0]
+    elapsed_time = np.zeros(N_run)
+    for i in range(N_warmup_run):
+        preds = model(batched_input)
+
+    tmp = 0
+    for i in range(N_run):
+        start_time = time.time()
+        preds = model(batched_input)
+        # Force device synchronization with .numpy()
+        tmp += preds[result_key][0, 0].numpy()
+        end_time = time.time()
+        elapsed_time[i] = end_time - start_time
+        all_preds.append(preds)
+
+        if i >= 50 and i % 50 == 0:
+            print('Steps {}-{} average: {:4.1f}ms'.format(i - 50, i, (elapsed_time[i - 50:i].mean()) * 1000))
+
+    print('Latency {:4.1f}+/-{:4.1f} ms'.format(elapsed_time.mean(), elapsed_time.std()))
+    print('Throughput: {:.0f} images/s'.format(N_run * batch_size / elapsed_time.sum()))
+    return all_preds
+
