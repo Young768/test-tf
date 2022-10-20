@@ -210,6 +210,9 @@ def predict_and_benchmark_throughput(batched_input, model, N_warmup_run=50, N_ru
     print('Throughput: {:.0f} images/s'.format(N_run * batch_size / elapsed_time.sum()))
     return all_preds
 
+x, y = val_gen[0]
+val_preds = model.predict(tf.constant(x))
+
 func, _ = get_func_from_saved_model('unet_pets_saved_model')
 
 output = func(tf.constant(x))
