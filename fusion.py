@@ -154,4 +154,4 @@ def test_conv2d_biasadd_act_fusion():
         epilog_ops = [b'BiasAdd', act_name]
         fused_op = ['_FusedConv2D']
 
-
+test_conv2d_biasadd_act_fusion()
