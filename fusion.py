@@ -1,3 +1,19 @@
+# Copyright 2021 The TensorFlow Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ==============================================================================
+"""Tests for Grappler Remapper."""
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -22,14 +38,10 @@ from tensorflow.python.ops import nn
 from tensorflow.python.ops import nn_ops
 from tensorflow.python.ops import random_ops
 from tensorflow.python.ops import variables
-from tensorflow.python.platform import sysconfig as sysconfig_lib
+from tensorflow.python.platform import sysconfig
 from tensorflow.python.platform import test
 from tensorflow.python.util import _pywrap_utils
-from tensorflow.python.client import device_lib
-import tensorflow as tf
-from tensorflow.python.framework import gpu_util
-from tensorflow.python.framework import errors_impl
-from tensorflow.python.platform import tf_logging as logging
+
 
 def _input(shape):
   """Generates an input of a given shape."""
@@ -58,60 +70,99 @@ def _get_config(remapping_on=False):
   config = config_pb2.ConfigProto(graph_options=graph_options)
   return config
 
-def is_gpu_available(cuda_only=False, min_cuda_compute_capability=None):
-  """Returns whether TensorFlow can access a GPU.
-  Warning: if a non-GPU version of the package is installed, the function would
-  also return False. Use `tf.test.is_built_with_cuda` to validate if TensorFlow
-  was build with CUDA support.
-  For example,
-  >>> gpu_available = tf.test.is_gpu_available()
-  >>> is_cuda_gpu_available = tf.test.is_gpu_available(cuda_only=True)
-  >>> is_cuda_gpu_min_3 = tf.test.is_gpu_available(True, (3,0))
-  Args:
-    cuda_only: limit the search to CUDA GPUs.
-    min_cuda_compute_capability: a (major,minor) pair that indicates the minimum
-      CUDA compute capability required, or None if no requirement.
-  Note that the keyword arg name "cuda_only" is misleading (since routine will
-  return true when a GPU device is available irrespective of whether TF was
-  built with CUDA support or ROCm support. However no changes here because
-  ++ Changing the name "cuda_only" to something more generic would break
-     backward compatibility
-  ++ Adding an equivalent "rocm_only" would require the implementation check
-     the build type. This in turn would require doing the same for CUDA and thus
-     potentially break backward compatibility
-  ++ Adding a new "cuda_or_rocm_only" would not break backward compatibility,
-     but would require most (if not all) callers to update the call to use
-     "cuda_or_rocm_only" instead of "cuda_only"
-  Returns:
-    True if a GPU device of the requested kind is available.
-  """
 
-  # This was needed earlier when we had support for SYCL in TensorFlow.
-  del cuda_only
+class RemapperTest(test.TestCase, parameterized.TestCase):
+  """Tests the Grappler remapper optimizer."""
 
-  try:
-    for local_device in device_lib.list_local_devices():
-      if local_device.device_type == "GPU":
-        gpu_info = gpu_util.compute_capability_from_device_desc(local_device)
-        cc = gpu_info.compute_capability or (0, 0)
-        if not min_cuda_compute_capability or cc >= min_cuda_compute_capability:
-          return True
-    return False
-  except errors_impl.NotFoundError as e:
-    if not all(x in str(e) for x in ["CUDA", "not find"]):
-      raise e
-    else:
-      logging.error(str(e))
-      return False
-@tf.function(jit_compile=True)
-def test_conv2d_biasadd_act_fusion():
+  def setUp(self):
+    super(RemapperTest, self).setUp()
+    # GeluApproximate fusion on GPU requires cublasLt.
+    os.environ['TF_USE_CUBLASLT'] = '1'
+    # GeluExact fusion and conv runtime fusion on GPU requires cuDNN frontend.
+    os.environ['TF_CUDNN_USE_FRONTEND'] = '1'
+    os.environ['TF_CUDNN_USE_RUNTIME_FUSION'] = '1'
+
+  def maybe_skip_test(self, mode):
+    if mode == 'cuda':
+      # It seems the windows os cannot correctly query the cuda_version.
+      # TODO(kaixih@nvidia): Remove this when it works.
+      if os.name == 'nt':
+        self.skipTest("This test doesn't support Windows")
+
+      # The cublaslt matmul with gelu epilog is only supported since cuda 11.4.
+      if not test.is_gpu_available(cuda_only=True):
+        self.skipTest('This test requires GPU.')
+      cuda_version_str = sysconfig.get_build_info().get('cuda_version', '0.0')
+      cuda_version = tuple([int(x) for x in cuda_version_str.split('.')])
+      if cuda_version < (11, 4):
+        self.skipTest('This test requires CUDA >= 11.4.')
+
+    if mode == 'mkl' and not test_util.IsMklEnabled():
+      self.skipTest('MKL is not enabled.')
+
+  def _VerifyNoFusion(self, model_fn):
+    ops.add_to_collection('train_op', model_fn)
+    mg = meta_graph.create_meta_graph_def(graph=model_fn.graph)
+
+    # Compute referene
+    config = _get_config(remapping_on=False)
+    gdef_ref = tf_optimizer.OptimizeGraph(config, mg)
+
+    # Compute with remapping ON
+    config = _get_config(remapping_on=True)
+    gdef = tf_optimizer.OptimizeGraph(config, mg)
+
+    self.assertEqual(len(gdef_ref.node), len(gdef.node))
+    self.assertAllEqual([n.op for n in gdef_ref.node],
+                        [n.op for n in gdef.node])
+
+  def _VerifyValues(self, model_fn, use_low_precision, fused_op, epilog_ops):
+    run_options = config_pb2.RunOptions(output_partition_graphs=True)
+    metadata = config_pb2.RunMetadata()
+    # Compute reference value.
+    config = _get_config(remapping_on=False)
+    with session.Session(config=config) as sess:
+      sess.run(variables.global_variables_initializer())
+      output_ref = sess.run(
+          model_fn, options=run_options, run_metadata=metadata)
+    # Compute output with fusion.
+    config = _get_config(remapping_on=True)
+    with session.Session(config=config) as sess:
+      sess.run(variables.global_variables_initializer())
+      output_val = sess.run(
+          model_fn, options=run_options, run_metadata=metadata)
+      graph = metadata.partition_graphs[0]
+
+    # Graph should contain fused op.
+    found_fused_op = False
+    for node in graph.node:
+      if node.op in fused_op:
+        fused_ops = node.attr['fused_ops'].list.s
+        ops_matched = len(fused_ops) >= 1 and len(fused_ops) == len(epilog_ops)
+        for op_a, op_b in zip(fused_ops, epilog_ops):
+          if op_a != op_b:
+            ops_matched = False
+            break
+        found_fused_op = ops_matched
+        break
+    self.assertTrue(found_fused_op)
+
+    # Computed output value should be close to reference value.
+    tol = 1e-2 if use_low_precision else 1e-5
+    self.assertAllClose(output_ref, output_val, atol=tol, rtol=tol)
+
+    return graph
+
+  @test_util.run_deprecated_v1
+  @test_util.disable_xla('This test does not pass with XLA')
+  def test_conv2d_biasadd_act_fusion(self):
     """Test Conv2D+BiasAdd+Relu fusion."""
     if not test_util.is_gpu_available():
-      print('No GPU available')
+      self.skipTest('No GPU available')
 
     N, H, W, C = (5, 3, 3, 8)  # pylint: disable=invalid-name
     # The runtime fusion requires the output dims to be 32-bit aligned.
-    ##self.assertEqual(C % 2, 0)
+    self.assertEqual(C % 2, 0)
 
     act_fns = [nn.relu]
     act_names = [b'Relu']
@@ -150,8 +201,12 @@ def test_conv2d_biasadd_act_fusion():
         z = nn.bias_add(y, b, data_format=b_format)
         out = act_fn(z)
         out = array_ops.identity(out)
-        print(out)
+
         epilog_ops = [b'BiasAdd', act_name]
         fused_op = ['_FusedConv2D']
+        graph = self._VerifyValues(out, use_fp16, fused_op, epilog_ops)
 
-test_conv2d_biasadd_act_fusion()
+
+
+if __name__ == '__main__':
+  test.main()
