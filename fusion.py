@@ -154,8 +154,6 @@ class RemapperTest(test.TestCase, parameterized.TestCase):
 
     return graph
 
-  @test_util.run_deprecated_v1
-  @tf.function(jit_compile=True)
   def test_conv2d_biasadd_act_fusion(self):
     """Test Conv2D+BiasAdd+Relu fusion."""
     if not test_util.is_gpu_available():
@@ -181,7 +179,6 @@ class RemapperTest(test.TestCase, parameterized.TestCase):
         if not use_fp16 and act_name != b'Relu':
           continue
 
-        ops.reset_default_graph()
         x_shape = [N, C, H, W]
         x_format, b_format = ('NCHW', 'NC..')
         if use_fp16:
@@ -197,12 +194,16 @@ class RemapperTest(test.TestCase, parameterized.TestCase):
           w = math_ops.cast(w, dtypes.float16)
           b = math_ops.cast(b, dtypes.float16)
 
-        y = nn_ops.conv2d(
-            x, w, strides=(1, 1), padding='SAME', data_format=x_format)
-        z = nn.bias_add(y, b, data_format=b_format)
-        out = act_fn(z)
-        out = array_ops.identity(out)
+        @tf.function(jit_compile=True)
+        def model():
+            y = nn_ops.conv2d(
+                x, w, strides=(1, 1), padding='SAME', data_format=x_format)
+            z = nn.bias_add(y, b, data_format=b_format)
+            out = act_fn(z)
+            out = array_ops.identity(out)
+            return out
 
+        output = model()
         epilog_ops = [b'BiasAdd', act_name]
         fused_op = ['_FusedConv2D']
         #graph = self._VerifyValues(out, use_fp16, fused_op, epilog_ops)
