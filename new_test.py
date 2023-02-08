@@ -115,9 +115,9 @@ def test_conv2d_biasadd_act_fusion():
     b = math_ops.cast(b, dtypes.float16)
 
     @tf.function(jit_compile=True)
-    def model():
+    def model(a):
         y = nn_ops.conv2d(
-                x, w, strides=(1, 1), padding='SAME', data_format=x_format)
+                a, w, strides=(1, 1), padding='SAME', data_format=x_format)
         z = nn.bias_add(y, b, data_format=b_format)
         out = act_fn(z)
         out = array_ops.identity(out)
@@ -125,7 +125,7 @@ def test_conv2d_biasadd_act_fusion():
     for i in range(1000):
       if i == 10:
         start = time.time()
-      output = model()
+      output = model(x)
     end = time.time()
     print("elasped time is:", end - start)
     epilog_ops = [b'BiasAdd', act_name]
