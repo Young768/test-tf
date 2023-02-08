@@ -42,6 +42,7 @@ from tensorflow.python.platform import sysconfig
 from tensorflow.python.platform import test
 from tensorflow.python.util import _pywrap_utils
 import tensorflow as tf
+import time
 
 os.environ['TF_CUDNN_USE_FRONTEND'] = '1'
 os.environ['TF_CUDNN_USE_RUNTIME_FUSION'] = '1'
@@ -122,7 +123,11 @@ def test_conv2d_biasadd_act_fusion():
         out = array_ops.identity(out)
         return out
     for i in range(20):
+      if i == 10:
+        start = time.time()
       output = model()
+    end = time.time()
+    print("elasped time is:", end - start)
     epilog_ops = [b'BiasAdd', act_name]
     fused_op = ['_FusedConv2D']
 
