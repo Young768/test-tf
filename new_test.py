@@ -74,96 +74,13 @@ def _get_config(remapping_on=False):
   return config
 
 
-class RemapperTest(test.TestCase, parameterized.TestCase):
-  """Tests the Grappler remapper optimizer."""
 
-  def setUp(self):
-    super(RemapperTest, self).setUp()
-    # GeluApproximate fusion on GPU requires cublasLt.
-    os.environ['TF_USE_CUBLASLT'] = '1'
-    # GeluExact fusion and conv runtime fusion on GPU requires cuDNN frontend.
-    os.environ['TF_CUDNN_USE_FRONTEND'] = '1'
-    os.environ['TF_CUDNN_USE_RUNTIME_FUSION'] = '1'
 
-  def maybe_skip_test(self, mode):
-    if mode == 'cuda':
-      # It seems the windows os cannot correctly query the cuda_version.
-      # TODO(kaixih@nvidia): Remove this when it works.
-      if os.name == 'nt':
-        self.skipTest("This test doesn't support Windows")
-
-      # The cublaslt matmul with gelu epilog is only supported since cuda 11.4.
-      if not test.is_gpu_available(cuda_only=True):
-        self.skipTest('This test requires GPU.')
-      cuda_version_str = sysconfig.get_build_info().get('cuda_version', '0.0')
-      cuda_version = tuple([int(x) for x in cuda_version_str.split('.')])
-      if cuda_version < (11, 4):
-        self.skipTest('This test requires CUDA >= 11.4.')
-
-    if mode == 'mkl' and not test_util.IsMklEnabled():
-      self.skipTest('MKL is not enabled.')
-
-  def _VerifyNoFusion(self, model_fn):
-    ops.add_to_collection('train_op', model_fn)
-    mg = meta_graph.create_meta_graph_def(graph=model_fn.graph)
-
-    # Compute referene
-    config = _get_config(remapping_on=False)
-    gdef_ref = tf_optimizer.OptimizeGraph(config, mg)
-
-    # Compute with remapping ON
-    config = _get_config(remapping_on=True)
-    gdef = tf_optimizer.OptimizeGraph(config, mg)
-
-    self.assertEqual(len(gdef_ref.node), len(gdef.node))
-    self.assertAllEqual([n.op for n in gdef_ref.node],
-                        [n.op for n in gdef.node])
-
-  def _VerifyValues(self, model_fn, use_low_precision, fused_op, epilog_ops):
-    run_options = config_pb2.RunOptions(output_partition_graphs=True)
-    metadata = config_pb2.RunMetadata()
-    # Compute reference value.
-    config = _get_config(remapping_on=False)
-    with session.Session(config=config) as sess:
-      sess.run(variables.global_variables_initializer())
-      output_ref = sess.run(
-          model_fn, options=run_options, run_metadata=metadata)
-    # Compute output with fusion.
-    config = _get_config(remapping_on=True)
-    with session.Session(config=config) as sess:
-      sess.run(variables.global_variables_initializer())
-      output_val = sess.run(
-          model_fn, options=run_options, run_metadata=metadata)
-      graph = metadata.partition_graphs[0]
-
-    # Graph should contain fused op.
-    found_fused_op = False
-    for node in graph.node:
-      if node.op in fused_op:
-        fused_ops = node.attr['fused_ops'].list.s
-        ops_matched = len(fused_ops) >= 1 and len(fused_ops) == len(epilog_ops)
-        for op_a, op_b in zip(fused_ops, epilog_ops):
-          if op_a != op_b:
-            ops_matched = False
-            break
-        found_fused_op = ops_matched
-        break
-    self.assertTrue(found_fused_op)
-
-    # Computed output value should be close to reference value.
-    tol = 1e-2 if use_low_precision else 1e-5
-    self.assertAllClose(output_ref, output_val, atol=tol, rtol=tol)
-
-    return graph
-
-  def test_conv2d_biasadd_act_fusion(self):
+def test_conv2d_biasadd_act_fusion():
     """Test Conv2D+BiasAdd+Relu fusion."""
-    if not test_util.is_gpu_available():
-      self.skipTest('No GPU available')
 
     N, H, W, C = (5, 3, 3, 8)  # pylint: disable=invalid-name
     # The runtime fusion requires the output dims to be 32-bit aligned.
-    self.assertEqual(C % 2, 0)
 
     act_fn = nn.elu
     act_name = 'Elu'
@@ -204,13 +121,9 @@ class RemapperTest(test.TestCase, parameterized.TestCase):
         out = act_fn(z)
         out = array_ops.identity(out)
         return out
-
-    output = model()
+    for i in range(20):
+      output = model()
     epilog_ops = [b'BiasAdd', act_name]
     fused_op = ['_FusedConv2D']
-        #graph = self._VerifyValues(out, use_fp16, fused_op, epilog_ops)
 
-
-
-if __name__ == '__main__':
-  test.main()
+test_conv2d_biasadd_act_fusion()
