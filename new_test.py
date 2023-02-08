@@ -122,7 +122,7 @@ def test_conv2d_biasadd_act_fusion():
         out = act_fn(z)
         out = array_ops.identity(out)
         return out
-    for i in range(1000):
+    for i in range(100000):
       if i == 10:
         start = time.time()
       output = model(x)
