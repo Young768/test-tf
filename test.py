@@ -197,18 +197,30 @@ class RemapperTest(test.TestCase, parameterized.TestCase):
     b = math_ops.cast(b, dtypes.float16)
 
     @tf.function(jit_compile=True)
-    def model():
+    def model(a):
         y = nn_ops.conv2d(
-                x, w, strides=(1, 1), padding='SAME', data_format=x_format)
+                a, w, strides=(1, 1), padding='SAME', data_format=x_format)
         z = nn.bias_add(y, b, data_format=b_format)
         out = act_fn(z)
         out = array_ops.identity(out)
         return out
 
-    output = model()
-    epilog_ops = [b'BiasAdd', act_name]
-    fused_op = ['_FusedConv2D']
-        #graph = self._VerifyValues(out, use_fp16, fused_op, epilog_ops)
+    def model1(a):
+        y = nn_ops.conv2d(
+                a, w, strides=(1, 1), padding='SAME', data_format=x_format)
+        z = nn.bias_add(y, b, data_format=b_format)
+        out = act_fn(z)
+        out = array_ops.identity(out)
+        return out
+
+    out_0 = model(x)
+    out_0 = array_ops.identity(out_0)
+
+    out_1 = model1(x)
+    out_1 = array_ops.identity(out_1)
+
+    tol = 1e-2
+    self.assertAllClose(out_0, out_1, atol=tol, rtol=tol)
 
 
 
