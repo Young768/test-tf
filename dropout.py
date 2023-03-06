@@ -53,6 +53,6 @@ def model(a):
   return out
 
 tf.random.set_seed(0)
-data = np.arange(1000000).reshape(500000, 2).astype(np.float32)
+data = np.arange(1000000000000).reshape(500000000000, 2).astype(np.float32)
 
 outputs = model(data)
